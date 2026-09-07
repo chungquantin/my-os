@@ -1,0 +1,894 @@
+<title>vaultd</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --ground:#faf8f8; --surface:#ffffff; --sunk:#f2eeee;
+  --rule:#e5e5e5; --rule-soft:#efebeb; --gray:#b8b8b8; --muted:#4e4e4e; --ink:#2b2b2b;
+  --accent:#284b63; --accent-soft:rgba(40,75,99,.09); --accent-line:rgba(40,75,99,.3);
+  --support:#84a59d; --support-soft:rgba(132,165,157,.18);
+  --ok:#3f7d5f; --ok-soft:rgba(63,125,95,.11);
+  --warn:#a8761f; --warn-soft:rgba(168,118,31,.12);
+  --crit:#a33a2e; --crit-soft:rgba(163,58,46,.1);
+  --mark:rgba(255,231,120,.55); --mark-line:#d8a72a;
+  --bezel:#d9d4d4;
+  --graph-dim:#cbc5c5; --graph-edge:#ded8d8;
+  --shadow:0 1px 2px rgba(43,43,43,.05), 0 14px 34px rgba(43,43,43,.09);
+  --display:"Schibsted Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --body:"Source Sans 3","Source Sans Pro",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#161618; --surface:#1e1e21; --sunk:#242427;
+    --rule:#393639; --rule-soft:#2c2a2c; --gray:#646464; --muted:#a2a2a4; --ink:#ebebec;
+    --accent:#7b97aa; --accent-soft:rgba(123,151,170,.15); --accent-line:rgba(123,151,170,.42);
+    --support:#84a59d; --support-soft:rgba(132,165,157,.18);
+    --ok:#79b394; --ok-soft:rgba(121,179,148,.14);
+    --warn:#d0a256; --warn-soft:rgba(208,162,86,.15);
+    --crit:#d3796c; --crit-soft:rgba(211,121,108,.14);
+    --mark:rgba(214,168,42,.3); --mark-line:#d0a256;
+    --bezel:#39363b;
+    --graph-dim:#4d4a4e; --graph-edge:#3b383c;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 38px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#161618; --surface:#1e1e21; --sunk:#242427;
+  --rule:#393639; --rule-soft:#2c2a2c; --gray:#646464; --muted:#a2a2a4; --ink:#ebebec;
+  --accent:#7b97aa; --accent-soft:rgba(123,151,170,.15); --accent-line:rgba(123,151,170,.42);
+  --support:#84a59d; --support-soft:rgba(132,165,157,.18);
+  --ok:#79b394; --ok-soft:rgba(121,179,148,.14);
+  --warn:#d0a256; --warn-soft:rgba(208,162,86,.15);
+  --crit:#d3796c; --crit-soft:rgba(211,121,108,.14);
+  --mark:rgba(214,168,42,.3); --mark-line:#d0a256;
+  --bezel:#39363b;
+  --graph-dim:#4d4a4e; --graph-edge:#3b383c;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 38px rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:5px}
+[hidden]{display:none!important}
+button{font-family:var(--body)}
+
+/* ---------- page ---------- */
+.wrap{max-width:1180px;margin:0 auto;padding:32px 22px 60px}
+.masthead{display:flex;flex-wrap:wrap;align-items:baseline;gap:9px 14px;margin-bottom:6px}
+.wordmark{font-family:var(--mono);font-size:20px;font-weight:500;letter-spacing:-.01em}
+.wordmark .dim{color:var(--gray)}
+.kicker{font-size:11px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.deck{max-width:64ch;color:var(--muted);font-size:15.5px;margin:0 0 18px}
+.deck b{color:var(--ink);font-weight:600}
+.viewpick{display:inline-flex;background:var(--sunk);border:1px solid var(--rule);border-radius:11px;padding:3px;gap:3px;margin-bottom:24px}
+.viewpick button{font-size:13.5px;font-weight:600;color:var(--muted);background:none;border:0;border-radius:8px;padding:8px 15px;cursor:pointer}
+.viewpick button[aria-pressed="true"]{background:var(--surface);color:var(--accent);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:46px;align-items:start}
+@media (max-width:920px){.stage{grid-template-columns:minmax(0,1fr);gap:24px}
+  .notes-col{order:2}.phone-col{order:1}}
+
+/* ---------- side notes ---------- */
+.nhead{font-size:11px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--gray);margin:0 0 13px}
+.nlist{display:flex;flex-direction:column;gap:14px;margin:0 0 22px;padding:0;list-style:none}
+.nlist li{border-left:2px solid var(--rule);padding-left:14px}
+.nlist li.hi{border-left-color:var(--support)}
+.nlist b{display:block;font-size:14px;letter-spacing:-.005em;margin-bottom:2px}
+.nlist span{font-size:13.5px;color:var(--muted);line-height:1.5}
+.nlist code{font-family:var(--mono);font-size:12.5px;color:var(--ink)}
+.rail{display:flex;flex-direction:column;gap:2px;list-style:none;padding:0;margin:0}
+.rail button{width:100%;display:grid;grid-template-columns:24px minmax(0,1fr);gap:12px;align-items:start;text-align:left;background:none;border:0;padding:10px 11px;border-radius:9px;cursor:pointer;color:inherit;font-size:14.5px}
+.rail button:hover{background:var(--accent-soft)}
+.rail .num{font-family:var(--mono);font-size:11px;line-height:21px;height:21px;border-radius:50%;text-align:center;border:1px solid var(--rule);color:var(--gray);background:var(--surface)}
+.rail .rt{font-weight:600;display:block}
+.rail .rd{display:block;font-size:12.5px;color:var(--muted);line-height:1.4}
+.rail li[data-state="done"] .num{background:var(--ok-soft);border-color:transparent;color:var(--ok)}
+.rail li[data-state="skip"] .num{background:var(--sunk);border-color:transparent;color:var(--gray)}
+.rail li[data-state="now"] button{background:var(--accent-soft)}
+.rail li[data-state="now"] .num{background:var(--accent);border-color:transparent;color:var(--surface)}
+.rail li[data-state="now"] .rt{color:var(--accent)}
+.rail li[data-opt="1"] .rt::after{content:"optional";font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--gray);margin-left:7px}
+
+/* ---------- phone ---------- */
+.phone{width:100%;max-width:392px;margin:0 auto;background:var(--bezel);border-radius:40px;padding:11px;box-shadow:var(--shadow)}
+.screen{background:var(--surface);border-radius:30px;overflow:hidden;display:flex;flex-direction:column;height:736px;position:relative}
+@media (max-width:560px){
+  .wrap{padding:22px 0 44px}
+  .masthead,.deck,.viewpick,.notes-col,.foot{margin-left:18px;margin-right:18px}
+  .phone{padding:0;border-radius:0;box-shadow:none;max-width:none;background:transparent}
+  .screen{border-radius:0;height:680px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+}
+.statusbar{display:flex;justify-content:space-between;align-items:center;padding:12px 20px 4px;font-size:12px;font-weight:600;color:var(--ink);flex:0 0 auto}
+.statusbar .rt{display:flex;gap:5px;align-items:center;color:var(--muted);font-weight:400;font-size:11px}
+
+/* nav bars */
+.navbar{display:flex;align-items:center;gap:10px;padding:8px 14px 12px;flex:0 0 auto;border-bottom:1px solid var(--rule-soft)}
+.navbar .back{background:none;border:0;color:var(--accent);font-size:14.5px;font-weight:600;cursor:pointer;padding:4px 2px;display:flex;align-items:center;gap:4px}
+.navbar h2{font-family:var(--display);font-size:17px;font-weight:700;letter-spacing:-.015em;margin:0;flex:1;text-align:center;padding-right:44px;line-height:1.2}
+.navbar .icon{background:none;border:0;color:var(--muted);cursor:pointer;font-size:16px;padding:4px}
+.bighead{padding:6px 20px 12px;flex:0 0 auto}
+.bighead h1{font-family:var(--display);font-size:26px;font-weight:700;letter-spacing:-.022em;margin:0 0 3px;line-height:1.14}
+.bighead p{margin:0;font-size:13.5px;color:var(--muted)}
+.vpick{display:flex;align-items:center;gap:7px;background:var(--sunk);border:1px solid var(--rule);border-radius:999px;padding:5px 12px;cursor:pointer;color:inherit;font-size:13px;font-weight:600}
+.vpick .caret{color:var(--gray);font-size:9px}
+
+.body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.pad{padding:14px 18px 18px;display:flex;flex-direction:column;gap:14px}
+
+/* tab bar */
+.tabbar{display:flex;border-top:1px solid var(--rule);background:var(--surface);flex:0 0 auto;padding-bottom:env(safe-area-inset-bottom,0)}
+.tabbar button{flex:1;background:none;border:0;padding:9px 4px 12px;cursor:pointer;color:var(--gray);display:flex;flex-direction:column;align-items:center;gap:3px;position:relative}
+.tabbar .tl{font-size:10.5px;font-weight:600;letter-spacing:.01em}
+.tabbar button[aria-current="true"]{color:var(--accent)}
+.tabbar .bdg{position:absolute;top:5px;left:calc(50% + 6px);background:var(--crit);color:#fff;font-size:9.5px;font-weight:700;border-radius:999px;padding:1px 5px;line-height:1.4}
+
+/* ---------- chat ---------- */
+.thread{padding:14px 16px;display:flex;flex-direction:column;gap:14px}
+.msg{display:flex;flex-direction:column;max-width:88%}
+.msg.me{align-self:flex-end;align-items:flex-end}
+.msg.ai{align-self:stretch;max-width:100%}
+.bub{background:var(--sunk);border-radius:16px;padding:10px 13px;font-size:14.5px;line-height:1.5}
+.msg.me .bub{background:var(--accent);color:var(--ground);border-bottom-right-radius:6px}
+.stamp{font-size:10.5px;color:var(--gray);margin-top:4px;padding:0 4px}
+.wave{display:flex;align-items:center;gap:9px}
+.wave .play{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.22);color:var(--ground);border:0;display:flex;align-items:center;justify-content:center;font-size:9px;flex:0 0 auto;cursor:pointer}
+.wave .bars{display:flex;align-items:center;gap:2px;height:22px}
+.wave .bars i{width:2.5px;border-radius:2px;background:var(--ground);opacity:.75;display:block}
+.wave .dur{font-size:12.5px;opacity:.85}
+.shot{display:flex;gap:9px;align-items:center}
+.shot .ph{width:52px;height:42px;border-radius:8px;flex:0 0 auto;background:linear-gradient(135deg,rgba(255,255,255,.3),rgba(255,255,255,.12));display:flex;align-items:center;justify-content:center;font-size:16px}
+.askchip{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.24);border-radius:999px;padding:2px 8px;align-self:flex-start;margin-bottom:6px;display:inline-block}
+
+.card{border:1px solid var(--rule);border-radius:15px;background:var(--surface);padding:13px 14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 2px rgba(43,43,43,.04)}
+.card .ct{font-family:var(--display);font-size:16.5px;font-weight:700;letter-spacing:-.014em;line-height:1.25}
+.card .cs{font-size:13px;color:var(--muted);line-height:1.45}
+.card.kept{border-color:var(--ok-soft);background:var(--ok-soft)}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--support-soft);color:var(--support);font-weight:600}
+.tag.plain{background:var(--sunk);color:var(--muted);font-weight:400}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.acts{display:flex;gap:8px;align-items:center}
+.acts .sp{flex:1}
+.btn{font-size:14px;font-weight:600;border-radius:10px;padding:10px 15px;cursor:pointer;border:1px solid transparent;background:var(--sunk);color:var(--muted)}
+.btn.pri{background:var(--accent);color:var(--ground)}
+.btn.pri:hover{filter:brightness(1.1)}
+.btn.sm{font-size:13px;padding:7px 12px;border-radius:9px}
+.btn.line{background:var(--surface);border-color:var(--rule)}
+.btn.wide{width:100%;justify-content:center;text-align:center}
+.btn.dan{background:var(--surface);border-color:var(--rule);color:var(--crit)}
+
+.ans{font-size:14.5px;line-height:1.58;margin:0}
+.ans sup{font-family:var(--mono);font-size:10px;color:var(--accent);background:var(--accent-soft);border-radius:4px;padding:1px 4px;margin-left:2px;vertical-align:super;cursor:pointer}
+.caveat{display:flex;gap:8px;font-size:12.5px;color:var(--warn);background:var(--warn-soft);border-radius:10px;padding:9px 11px;line-height:1.45}
+.srcs{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--rule-soft);padding-top:10px}
+.srcs .sl{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray)}
+.src{display:flex;gap:9px;align-items:center;background:var(--sunk);border:0;border-radius:10px;padding:9px 11px;cursor:pointer;text-align:left;width:100%;color:inherit}
+.src:hover{background:var(--accent-soft)}
+.src .n{width:19px;height:19px;border-radius:50%;background:var(--accent);color:var(--ground);font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.src .st{font-size:13.5px;font-weight:600;line-height:1.25;flex:1;min-width:0}
+.src .sq{font-size:11.5px;color:var(--muted);display:block;font-weight:400;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.src .go{color:var(--gray);font-size:13px;flex:0 0 auto}
+
+.steps{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+.steps div{display:flex;gap:9px;align-items:center}
+.steps .on{color:var(--ink);font-weight:600}
+.steps .pend{color:var(--gray)}
+
+.modebar{display:flex;align-items:center;gap:9px;padding:9px 16px 0;flex:0 0 auto}
+.seg{display:flex;background:var(--sunk);border-radius:10px;padding:3px;gap:3px}
+.seg button{font-size:13px;font-weight:600;color:var(--muted);background:none;border:0;border-radius:8px;padding:6px 15px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--accent);box-shadow:0 1px 2px rgba(0,0,0,.09)}
+.modebar .mh{font-size:11.5px;color:var(--gray);flex:1;text-align:right}
+.composer{padding:10px 14px calc(12px + env(safe-area-inset-bottom,0));display:flex;gap:8px;align-items:center;flex:0 0 auto;border-top:1px solid var(--rule-soft)}
+.cin{flex:1;background:var(--sunk);border-radius:22px;padding:12px 16px;font-size:14.5px;color:var(--gray);min-height:44px}
+.cbtn{width:44px;height:44px;border-radius:50%;border:0;background:var(--sunk);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
+.cbtn.go{background:var(--accent);color:var(--ground)}
+.cbtn.rec{background:var(--crit);color:#fff}
+.recbar{flex:1;display:flex;align-items:center;gap:10px;background:var(--crit-soft);border-radius:22px;padding:12px 16px;min-height:44px}
+.recbar .rd{width:9px;height:9px;border-radius:50%;background:var(--crit);flex:0 0 auto}
+.recbar .rt{font-size:13.5px;color:var(--crit);font-weight:600}
+.recbar .rw{display:flex;align-items:center;gap:2px;height:18px;flex:1}
+.recbar .rw i{width:2.5px;border-radius:2px;background:var(--crit);opacity:.55;display:block}
+
+/* ---------- lists ---------- */
+.rowbtn{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--rule-soft);padding:13px 18px;cursor:pointer;color:inherit}
+.rowbtn:hover{background:var(--sunk)}
+.rowbtn .ic{width:34px;height:34px;border-radius:10px;background:var(--sunk);display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:15px}
+.rowbtn .rt{font-size:14.5px;font-weight:600;line-height:1.28;display:block;letter-spacing:-.005em}
+.rowbtn .rm{font-size:12.5px;color:var(--muted);display:block;margin-top:1px}
+.rowbtn .go{color:var(--gray);font-size:14px;flex:0 0 auto}
+.pill{font-size:11px;font-weight:700;letter-spacing:.03em;padding:2px 8px;border-radius:999px;background:var(--warn-soft);color:var(--warn);white-space:nowrap;flex:0 0 auto}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.bad{background:var(--crit-soft);color:var(--crit)}
+.sectlab{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);padding:16px 18px 7px}
+
+/* ---------- note reader ---------- */
+.jump{display:flex;align-items:center;gap:10px;background:var(--accent-soft);padding:10px 18px;flex:0 0 auto;font-size:13px;color:var(--accent);font-weight:600}
+.jump .sp{flex:1}
+.jump button{width:30px;height:30px;border-radius:8px;border:1px solid var(--accent-line);background:var(--surface);color:var(--accent);cursor:pointer;font-size:12px}
+.note{padding:16px 18px 8px;font-size:15px;line-height:1.62}
+.note h1{font-family:var(--display);font-size:23px;font-weight:700;letter-spacing:-.02em;margin:0 0 4px;line-height:1.16}
+.note .meta{font-size:12.5px;color:var(--muted);margin:0 0 16px}
+.note h2{font-family:var(--display);font-size:16px;font-weight:700;margin:20px 0 6px;letter-spacing:-.01em}
+.note p{margin:0 0 12px}
+.note ul{margin:0 0 12px;padding-left:20px}
+.note li{margin-bottom:5px}
+.note mark{background:var(--mark);border-bottom:2px solid var(--mark-line);border-radius:2px;padding:1px 0;color:inherit}
+.note mark.active{background:var(--mark);outline:2px solid var(--mark-line);outline-offset:2px;border-radius:3px}
+.note a.wl{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-line)}
+.relhead{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);padding:8px 18px 6px}
+.relnote{font-size:12.5px;color:var(--muted);padding:0 18px 10px;line-height:1.45}
+
+/* ---------- graph ---------- */
+.gwrap{padding:6px 12px 0}
+.gwrap svg{display:block;width:100%;height:auto}
+.gedge{stroke:var(--graph-edge);stroke-width:1.1}
+.gedge.new{stroke:var(--support);stroke-width:2}
+.gnode{fill:var(--graph-dim)}
+.gnode.new{fill:var(--support);stroke:var(--surface);stroke-width:2.5}
+.gnode.orphan{fill:none;stroke:var(--warn);stroke-width:2;stroke-dasharray:3.5 2.5}
+.glabel{fill:var(--gray);font-family:"IBM Plex Mono",monospace;font-size:8.5px;text-anchor:middle}
+.glabel.new{fill:var(--support);font-size:9.6px;font-weight:500}
+.glabel.orphan{fill:var(--warn)}
+.gstat{display:flex;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:12px;overflow:hidden;margin:0 18px}
+.gstat div{flex:1;background:var(--surface);padding:9px 6px;text-align:center}
+.gstat .v{font-family:var(--mono);font-size:17px;font-weight:500;letter-spacing:-.02em}
+.gstat .v.up{color:var(--support)}
+.gstat .v.bad{color:var(--warn)}
+.gstat .l{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--gray);margin-top:1px}
+.note-warn{display:flex;gap:9px;background:var(--warn-soft);color:var(--warn);border-radius:12px;padding:11px 13px;font-size:13px;line-height:1.45;margin:0 18px}
+.note-warn b{font-weight:600}
+
+/* ---------- settings ---------- */
+.grp{border:1px solid var(--rule);border-radius:14px;overflow:hidden;background:var(--surface)}
+.grp .rowbtn{border-bottom:1px solid var(--rule-soft);padding:12px 14px}
+.grp .rowbtn:last-child{border-bottom:0}
+.grp .val{font-size:13px;color:var(--muted);flex:0 0 auto;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hint{font-size:12.5px;color:var(--muted);line-height:1.48;margin:0}
+.hint b{color:var(--ink)}
+.hint code,.mono{font-family:var(--mono);font-size:12px}
+.disc{border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+.disc summary{list-style:none;cursor:pointer;padding:11px 13px;font-size:13px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:8px}
+.disc summary::-webkit-details-marker{display:none}
+.disc[open] summary{color:var(--accent);border-bottom:1px solid var(--rule-soft)}
+.disc .dc{padding:12px 13px;font-family:var(--mono);font-size:11.5px;line-height:1.7;color:var(--muted);white-space:pre-wrap;word-break:break-word}
+.disc .dc .add{color:var(--ok)}
+
+/* ---------- setup screens ---------- */
+.sbody{padding:14px 18px 12px;display:flex;flex-direction:column;gap:14px;flex:1;overflow-y:auto}
+.sfoot{padding:12px 18px calc(16px + env(safe-area-inset-bottom,0));border-top:1px solid var(--rule-soft);display:flex;gap:9px;align-items:center;flex:0 0 auto}
+.dots{display:flex;gap:5px;margin-right:auto}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--rule);display:block}
+.dots i.on{background:var(--accent);width:17px;border-radius:3px}
+.eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin:0 0 5px}
+.row{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--muted);padding:10px 12px;border-radius:11px;background:var(--sunk)}
+.row.ok{background:var(--ok-soft);color:var(--ok)}
+.row.warn{background:var(--warn-soft);color:var(--warn)}
+.row .mk{font-weight:700;flex:0 0 auto}
+.row b{color:var(--ink);font-weight:600}
+.row.ok b,.row.warn b{color:inherit}
+.field{display:flex;flex-direction:column;gap:6px}
+.lab{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.inp{font-size:14px;color:var(--ink);background:var(--sunk);border:1px solid var(--rule);border-radius:11px;padding:12px 13px;display:flex;align-items:center;gap:8px;min-height:46px}
+.inp .grow{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.inp .u{font-size:12px;color:var(--gray)}
+select.inp{appearance:none;width:100%;background-image:linear-gradient(45deg,transparent 50%,var(--gray) 50%),linear-gradient(135deg,var(--gray) 50%,transparent 50%);background-position:calc(100% - 16px) 21px,calc(100% - 11px) 21px;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+.oauth{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:var(--ink);color:var(--ground);border:0;border-radius:12px;padding:15px;font-size:15.5px;font-weight:600;cursor:pointer}
+.consent{border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+.consent .ct{padding:10px 13px;background:var(--sunk);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.consent li{display:flex;gap:10px;padding:11px 13px;font-size:13.5px;border-top:1px solid var(--rule-soft);align-items:flex-start;list-style:none}
+.consent ul{margin:0;padding:0}
+.consent .mk{color:var(--ok);font-weight:700}
+.consent span span{display:block;color:var(--muted);font-size:12.5px}
+.idcard{display:flex;align-items:center;gap:12px;border:1px solid var(--rule);border-radius:12px;padding:12px 14px}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--accent);color:var(--ground);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:15px;flex:0 0 auto}
+.altline{text-align:center;font-size:12.5px;color:var(--muted)}
+.altline button{background:none;border:0;padding:0;font:inherit;color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.vrow{display:flex;align-items:center;gap:11px;width:100%;text-align:left;border:1px solid var(--rule);background:var(--surface);border-radius:12px;padding:12px 13px;cursor:pointer;color:inherit}
+.vrow[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.vrow .vi{width:32px;height:32px;border-radius:9px;background:var(--support-soft);color:var(--support);display:flex;align-items:center;justify-content:center;font-size:14px;flex:0 0 auto}
+.vrow .vn{font-size:14px;font-weight:600;display:block;line-height:1.25}
+.vrow .vm{font-size:12.5px;color:var(--muted);display:block}
+.vrow .vb{margin-left:auto;font-size:11.5px;color:var(--gray);flex:0 0 auto}
+.orline{display:flex;align-items:center;gap:12px;color:var(--gray);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.orline::before,.orline::after{content:"";height:1px;background:var(--rule);flex:1}
+.tree{font-family:var(--mono);font-size:12px;line-height:1.9;background:var(--sunk);border-radius:11px;padding:13px;overflow-x:auto;white-space:pre;color:var(--muted)}
+.tree .d{color:var(--ink)} .tree .c{color:var(--support)} .tree .h{color:var(--accent)}
+.lockline{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.lockline .tx{font-size:14.5px;font-weight:600}
+.switch{width:46px;height:27px;border-radius:999px;background:var(--accent);position:relative;flex:0 0 auto;border:0;cursor:pointer}
+.switch::after{content:"";position:absolute;top:3px;right:3px;width:21px;height:21px;border-radius:50%;background:var(--surface);transition:all .16s ease}
+.switch[aria-checked="false"]{background:var(--gray)}
+.switch[aria-checked="false"]::after{right:22px}
+.switch[disabled]{opacity:.85;cursor:not-allowed}
+.term{background:#1b1e24;border-radius:12px;padding:13px;font-family:var(--mono);font-size:11px;line-height:1.75;color:#d8dbe2;overflow-x:auto;min-height:250px}
+.term div{white-space:pre;opacity:0;animation:tin .18s ease forwards}
+.term .g{color:#7d838f} .term .a{color:#8fb3c9} .term .s{color:#93c9a8}
+@keyframes tin{to{opacity:1}}
+.bar{height:6px;border-radius:999px;background:var(--rule);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .35s ease}
+@media (prefers-reduced-motion:reduce){.term div{opacity:1;animation:none}.bar i{transition:none}}
+.mic{display:flex;flex-direction:column;align-items:center;gap:13px;padding:14px 0 4px}
+.micbtn{width:100px;height:100px;border-radius:50%;border:0;cursor:pointer;background:var(--accent);color:var(--ground);display:flex;align-items:center;justify-content:center;position:relative}
+.micbtn::before{content:"";position:absolute;inset:-10px;border-radius:50%;border:1px solid var(--accent);opacity:.3}
+.miclab{font-size:13.5px;color:var(--muted);text-align:center}
+.miclab b{color:var(--ink)}
+.draft{border:1px solid var(--rule);border-radius:16px;padding:13px 14px;background:var(--sunk);display:flex;flex-direction:column;gap:8px;min-height:150px}
+.draft div{display:flex;gap:10px;align-items:center;opacity:0;animation:tin .2s ease forwards;font-size:13.5px;color:var(--muted)}
+.draft .now{color:var(--ink);font-weight:600}
+@media (prefers-reduced-motion:reduce){.draft div{opacity:1;animation:none}}
+.done-mark{width:48px;height:48px;border-radius:50%;background:var(--ok-soft);color:var(--ok);display:flex;align-items:center;justify-content:center;font-size:23px}
+
+.foot{max-width:70ch;margin:38px auto 0;font-size:13.5px;color:var(--muted);line-height:1.6;text-align:center}
+.foot code{font-family:var(--mono);font-size:12.5px;color:var(--ink)}
+</style>
+
+<div class="wrap">
+  <div class="masthead">
+    <span class="wordmark">vaultd<span class="dim" id="wm">://app</span></span>
+    <span class="kicker">Mobile PWA prototype · v0.4</span>
+  </div>
+  <p class="deck" id="deck"></p>
+
+  <div class="viewpick" role="group" aria-label="View">
+    <button type="button" data-view="app">The app</button>
+    <button type="button" data-view="setup">First run</button>
+  </div>
+
+  <div class="stage">
+    <div class="notes-col" id="notes"></div>
+    <div class="phone-col">
+      <div class="phone"><div class="screen" id="screen"></div></div>
+    </div>
+  </div>
+
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+(function(){
+'use strict';
+var esc=function(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
+var reduced=function(){return window.matchMedia('(prefers-reduced-motion: reduce)').matches;};
+var timers=[]; function clearTimers(){timers.forEach(clearTimeout);timers=[];}
+function bars(n,seed,cls,max){var o='',v=seed;for(var i=0;i<n;i++){v=(v*1103515245+12345)%2147483648;o+='<i style="height:'+(4+(v%(max||17)))+'px"></i>';}return '<span class="'+cls+'">'+o+'</span>';}
+
+/* =================== data =================== */
+
+var NOTES = {
+  colo:{
+    title:'Colocation pricing from Equinix call',
+    meta:'Voice note · 6 Sept · not filed yet',
+    kept:false,
+    html:'<p>Talked to Equinix about the Singapore cage. Two things I had wrong.</p>'
+      + '<p><mark data-h="1">Cross-connect is billed per port per month, not per rack.</mark> '
+      + 'So the cost scales with how many venues I connect to, not how much space I take.</p>'
+      + '<h2>Power</h2>'
+      + '<p><mark data-h="2">Power is the real line item — quoted 6 kW committed with burst to 8.</mark> '
+      + 'Committed power is billed whether I draw it or not, so oversizing early is expensive.</p>'
+      + '<p>Still unclear whether burst is billed at a penalty rate. Ask on the follow-up call.</p>',
+    rel:[
+      {t:'Exchange Architecture', m:'mentions colocation', k:'out'},
+      {t:'Kernel Bypass Technologies', m:'shares tag #latency', k:'tag'},
+      {t:'Matching Engine Deployment', m:'shares tag #colocation', k:'tag'}
+    ]
+  },
+  fpga:{
+    title:'FPGA timing closure notes',
+    meta:'Voice note · today 9:12 · not filed yet',
+    kept:false,
+    html:'<p>Timing closure keeps failing on the market-data parser path. '
+      + 'The critical path runs through the checksum stage.</p>'
+      + '<h2>Next</h2><ul><li>pipeline the checksum into two stages</li>'
+      + '<li>re-run with <code>--retiming</code> before touching the constraints file</li></ul>'
+      + '<p>Related: <a class="wl" href="#">FPGA Deployment</a>, '
+      + '<a class="wl" href="#">Kernel Bypass Technologies</a></p>',
+    rel:[{t:'FPGA Deployment', m:'linked from this note', k:'out'},
+         {t:'Kernel Bypass Technologies', m:'linked from this note', k:'out'},
+         {t:'Low-Latency Systems', m:'links here', k:'in'}]
+  }
+};
+
+var DRAFTS = [
+  {id:'d1', icon:'🎧', t:'FPGA timing closure notes', m:'Voice note · 2 min ago', s:'wait', note:'fpga',
+   tags:['fpga','timing'], links:'Connects to 3 of your notes'},
+  {id:'d2', icon:'📷', t:'Whiteboard — order lifecycle', m:'Photo · 1 hour ago', s:'wait', note:'fpga',
+   tags:['execution','orders'], links:'Connects to 1 of your notes'},
+  {id:'d3', icon:'🎧', t:'Colocation pricing from Equinix call', m:'Voice note · yesterday', s:'lone', note:'colo',
+   tags:['colocation','cost'], links:'Not connected to anything yet'}
+];
+
+/* portrait graph */
+var N=[{x:66,y:58,r:6,l:"Rust"},{x:158,y:40,r:5.5,l:"Microstructure"},{x:252,y:82,r:8,l:"Roadmap"},
+ {x:124,y:112,r:6.5,l:"HFT Map"},{x:230,y:158,r:6,l:"Low-Latency"},{x:312,y:126,r:5.5,l:"Benchmarks"},
+ {x:204,y:246,r:6.5,l:"Kernel Bypass"},{x:298,y:214,r:5.5,l:"InfiniBand"},{x:108,y:232,r:6,l:"FPGA Deploy"},
+ {x:54,y:158,r:5.5,l:"Order Book"},{x:46,y:246,r:5.5,l:"Risk Engine"},{x:320,y:292,r:5,l:"Glossary"},
+ {x:90,y:318,r:5,l:"Seqlocks"}];
+var E=[[0,3],[1,3],[3,2],[2,4],[4,5],[4,6],[6,7],[6,8],[8,4],[9,3],[9,10],[10,3],[5,11],[7,11],[2,1],[0,9],[12,9]];
+var NEWN=[{x:164,y:346,r:9,l:"FPGA timing closure",to:[8,6,4]},
+          {x:266,y:340,r:7.5,l:"Queue priority",to:[6,7]},
+          {x:300,y:398,r:7.5,l:"Colocation pricing",to:[],orphan:true}];
+
+/* =================== state =================== */
+var view='app', tab='chat', pushed=null, chatMode='capture', recording=false, hl=1;
+var cur=0, authed=false, testState='input', testTab='diff', gv='after', testSkipped=false;
+
+/* =================== app screens =================== */
+
+function icon(p,sz){return '<svg width="'+(sz||21)+'" height="'+(sz||21)+'" viewBox="0 0 24 24" fill="none" '
+  + 'stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>';}
+var IC={
+  chat:'<path d="M20 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/>',
+  inbox:'<path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7"/><path d="m3 12 3-8h12l3 8"/><path d="M9 12a3 3 0 0 0 6 0"/>',
+  graph:'<circle cx="6" cy="7" r="2.4"/><circle cx="18" cy="6" r="2.4"/><circle cx="12" cy="17" r="2.4"/><path d="M7.8 8.6 10.7 15M16.6 8.1 13.4 15"/>',
+  more:'<circle cx="12" cy="6" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="18" r="1.4"/>',
+  mic:'<rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><path d="M12 17.5V21"/>',
+  clip:'<path d="M21 11.5 12.5 20a5 5 0 0 1-7-7l8-8a3.3 3.3 0 0 1 4.7 4.7l-8 8a1.7 1.7 0 0 1-2.4-2.4l7.4-7.4"/>',
+  send:'<path d="M4 12h15M13 6l6 6-6 6"/>'
+};
+
+function tabbar(){
+  var T=[['chat','Chat',IC.chat,0],['review','Review',IC.inbox,3],['graph','Graph',IC.graph,0],['more','More',IC.more,0]];
+  return '<nav class="tabbar">'+T.map(function(t){
+    return '<button type="button" data-tab="'+t[0]+'" aria-current="'+(tab===t[0]&&!pushed)+'">'
+      + icon(t[2],22) + (t[3]?'<span class="bdg">'+t[3]+'</span>':'')
+      + '<span class="tl">'+t[1]+'</span></button>';
+  }).join('')+'</nav>';
+}
+function statusbar(){return '<div class="statusbar"><span>9:41</span>'
+  + '<span class="rt">second-brain · synced</span></div>';}
+
+/* ---- chat ---- */
+function scChat(){
+  var thread =
+    me('<div class="wave"><button class="play" type="button" aria-label="Play">▶</button>'+bars(26,7,'bars')+'<span class="dur">0:12</span></div>','9:12')
+  + ai('<div class="card"><span class="ct">FPGA timing closure notes</span>'
+      + '<span class="cs">Timing closure keeps failing on the market-data parser path. The critical path runs through the checksum stage.</span>'
+      + '<div class="tags"><span class="tag">fpga</span><span class="tag">timing</span>'
+      + '<span class="tag plain">Connects to 3 notes</span></div>'
+      + '<div class="acts"><button class="btn sm" type="button" data-open="fpga">Read</button>'
+      + '<span class="sp"></span><button class="btn sm dan" type="button">Delete</button>'
+      + '<button class="btn sm pri" type="button">Keep</button></div></div>','9:12')
+  + me('<div class="shot"><span class="ph">🖼</span><span>whiteboard.jpg</span></div>'
+      + '<div style="margin-top:7px">order lifecycle from standup</div>','8:04')
+  + ai('<div class="card kept"><span class="ct">Whiteboard — order lifecycle</span>'
+      + '<span class="cs">Saved to <b>Deep Dives</b>. Added 1 new connection.</span>'
+      + '<div class="acts"><span class="pill ok">Kept</span><span class="sp"></span>'
+      + '<button class="btn sm line" type="button">Open</button></div></div>','8:05')
+  + me('<span class="askchip">Ask</span><div>What did I decide about colocation pricing?</div>','now')
+  + ai('<div class="card">'
+      + '<p class="ans">Cross-connect is billed <b>per port per month, not per rack</b><sup>1</sup> — '
+      + 'so cost scales with how many venues you connect to. Power is the line item that actually '
+      + 'moves: you recorded 6&#8202;kW committed with burst to 8<sup>2</sup>.</p>'
+      + '<div class="caveat"><span>⚠</span><span>This comes from one note you haven&#39;t filed yet, '
+      + 'so there is nothing to cross-check it against.</span></div>'
+      + '<div class="srcs"><span class="sl">Where this came from</span>'
+      + '<button class="src" type="button" data-open="colo" data-h="1"><span class="n">1</span>'
+      +   '<span class="st">Colocation pricing from Equinix call'
+      +   '<span class="sq">“billed per port per month, not per rack”</span></span><span class="go">›</span></button>'
+      + '<button class="src" type="button" data-open="colo" data-h="2"><span class="n">2</span>'
+      +   '<span class="st">Colocation pricing from Equinix call'
+      +   '<span class="sq">“6 kW committed with burst to 8”</span></span><span class="go">›</span></button>'
+      + '</div>'
+      + '<div class="acts"><button class="btn sm" type="button">Save as note</button></div></div>','now');
+
+  var comp = recording
+    ? '<div class="recbar"><span class="rd"></span><span class="rt">0:04</span>'+bars(30,19,'rw',14)+'</div>'
+      + '<button class="cbtn rec" type="button" data-rec="0" aria-label="Stop">■</button>'
+    : '<button class="cbtn" type="button" aria-label="Add a photo">'+icon(IC.clip,20)+'</button>'
+      + '<div class="cin">'+(chatMode==='ask'?'Ask about your notes…':'What&#39;s on your mind?')+'</div>'
+      + '<button class="cbtn" type="button" data-rec="1" aria-label="Hold to record">'+icon(IC.mic,20)+'</button>'
+      + '<button class="cbtn go" type="button" aria-label="Send">'+icon(IC.send,19)+'</button>';
+
+  return statusbar()
+    + '<div class="bighead" style="display:flex;align-items:center;justify-content:space-between;gap:10px">'
+    +   '<h1 style="font-size:23px">Chat</h1>'
+    +   '<button class="vpick" type="button">second-brain<span class="caret">▼</span></button></div>'
+    + '<div class="body"><div class="thread">'+thread+'</div></div>'
+    + '<div class="modebar"><div class="seg">'
+    +   '<button type="button" data-mode="capture" aria-pressed="'+(chatMode==='capture')+'">Note</button>'
+    +   '<button type="button" data-mode="ask" aria-pressed="'+(chatMode==='ask')+'">Ask</button></div>'
+    +   '<span class="mh">'+(chatMode==='ask'?'reads only, never edits':'saves a draft you check first')+'</span></div>'
+    + '<div class="composer">'+comp+'</div>'
+    + tabbar();
+}
+function me(inner,t){return '<div class="msg me"><div class="bub">'+inner+'</div><span class="stamp">'+t+'</span></div>';}
+function ai(inner,t){return '<div class="msg ai">'+inner+'<span class="stamp">'+t+'</span></div>';}
+
+/* ---- review ---- */
+function scReview(){
+  var rows = DRAFTS.map(function(d){
+    var pill = d.s==='lone' ? '<span class="pill bad">Not linked</span>' : '<span class="pill">Waiting</span>';
+    return '<button class="rowbtn" type="button" data-draft="'+d.id+'"><span class="ic">'+d.icon+'</span>'
+      + '<span style="min-width:0;flex:1"><span class="rt">'+esc(d.t)+'</span><span class="rm">'+d.m+'</span></span>'
+      + pill+'<span class="go">›</span></button>';
+  }).join('');
+  return statusbar()
+    + '<div class="bighead"><h1>Review</h1><p>3 notes waiting. Nothing is saved until you say so.</p></div>'
+    + '<div class="body">'+rows
+    + '<div class="sectlab">Earlier</div>'
+    + '<button class="rowbtn" type="button"><span class="ic">✎</span>'
+    + '<span style="min-width:0;flex:1"><span class="rt">Queue priority amend semantics</span>'
+    + '<span class="rm">Typed · 2 days ago</span></span><span class="pill ok">Kept</span><span class="go">›</span></button>'
+    + '<p class="hint" style="padding:16px 18px">Anything you skip stays here. Nothing expires.</p>'
+    + '</div>' + tabbar();
+}
+
+function scDraft(id){
+  var d = DRAFTS.filter(function(x){return x.id===id;})[0];
+  var n = NOTES[d.note];
+  return statusbar()
+    + '<div class="navbar"><button class="back" type="button" data-back="1">‹ Review</button>'
+    +   '<h2>Draft</h2></div>'
+    + '<div class="body"><div class="pad">'
+    +   '<div><div style="font-family:var(--display);font-size:21px;font-weight:700;letter-spacing:-.018em;line-height:1.2">'+esc(d.t)+'</div>'
+    +   '<p class="hint" style="margin-top:5px">'+d.m+'</p></div>'
+    +   '<div class="tags">'+d.tags.map(function(t){return '<span class="tag">'+t+'</span>';}).join('')
+    +     '<span class="tag plain">'+d.links+'</span></div>'
+    +   (d.s==='lone'
+      ? '<div class="note-warn" style="margin:0"><span>⚠</span><span>This doesn&#39;t connect to anything you&#39;ve written. '
+        + 'Keep it anyway, or write the note it belongs under.</span></div>' : '')
+    +   '<div class="card" style="gap:6px"><span class="sl" style="font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray)">Preview</span>'
+    +     '<div style="font-size:14px;line-height:1.55">'+n.html.replace(/<mark[^>]*>/g,'').replace(/<\/mark>/g,'')+'</div></div>'
+    +   '<div class="field"><span class="lab">Where it goes</span>'
+    +     '<select class="inp" aria-label="Folder"><option>Deep Dives</option><option>Foundations</option>'
+    +     '<option>Data and Research</option><option>Leave it in the inbox</option></select></div>'
+    +   '<details class="disc"><summary>⚙ Technical details</summary><div class="dc">'
+    +     'path  05 - Inbox/2026-09-07-0912-fpga-timing-closure.md\n'
+    +     'commit  pending\n\n<span class="add">+ title: FPGA timing closure notes\n'
+    +     '+ tags: [fpga, timing]\n+ draft: true\n+ transcribe_model: whisper-large-v3</span></div></details>'
+    + '</div></div>'
+    + '<div class="sfoot"><button class="btn dan" type="button" data-back="1">Delete</button>'
+    +   '<button class="btn line" type="button">Edit</button>'
+    +   '<button class="btn pri" style="flex:1" type="button" data-back="1">Keep it</button></div>';
+}
+
+/* ---- note reader with highlights ---- */
+function scNote(id){
+  var n = NOTES[id];
+  var html = n.html.replace(/data-h="(\d)"/g, function(m,d){
+    return 'data-h="'+d+'"'+(String(hl)===d?' class="active"':'');
+  });
+  var hasHl = /<mark/.test(n.html);
+  var rel = n.rel.map(function(r){
+    var lab = r.k==='out'?'→':r.k==='in'?'←':'#';
+    return '<button class="rowbtn" type="button" data-open="colo"><span class="ic">'+lab+'</span>'
+      + '<span style="min-width:0;flex:1"><span class="rt">'+esc(r.t)+'</span><span class="rm">'+esc(r.m)+'</span></span>'
+      + '<span class="go">›</span></button>';
+  }).join('');
+
+  return statusbar()
+    + '<div class="navbar"><button class="back" type="button" data-back="1">‹ Back</button>'
+    +   '<h2>Note</h2></div>'
+    + (hasHl ? '<div class="jump"><span>Used in your answer</span><span class="sp"></span>'
+        + '<span style="font-family:var(--mono);font-size:12px">'+hl+' of 2</span>'
+        + '<button type="button" data-hl="'+(hl===1?2:1)+'" aria-label="Previous">↑</button>'
+        + '<button type="button" data-hl="'+(hl===1?2:1)+'" aria-label="Next">↓</button></div>' : '')
+    + '<div class="body">'
+    +   '<div class="note"><h1>'+esc(n.title)+'</h1><p class="meta">'+esc(n.meta)+'</p>'+html+'</div>'
+    +   '<div class="relhead">Related notes</div>'
+    +   '<p class="relnote">From links you wrote and tags you share. Not a guess.</p>'
+    +   rel
+    +   '<div style="padding:16px 18px 22px;display:flex;gap:9px">'
+    +     '<button class="btn line" style="flex:1" type="button">Open in Obsidian</button>'
+    +     '<button class="btn pri" style="flex:1" type="button" data-back="1">Keep this note</button></div>'
+    + '</div>';
+}
+
+/* ---- graph ---- */
+function scGraph(){
+  var s='<svg viewBox="0 0 360 440" role="img" aria-label="Your notes and how they connect">';
+  E.forEach(function(e){s+='<line class="gedge" x1="'+N[e[0]].x+'" y1="'+N[e[0]].y+'" x2="'+N[e[1]].x+'" y2="'+N[e[1]].y+'"/>';});
+  NEWN.forEach(function(n){n.to.forEach(function(i){
+    s+='<line class="gedge new" x1="'+n.x+'" y1="'+n.y+'" x2="'+N[i].x+'" y2="'+N[i].y+'"/>';});});
+  N.forEach(function(n){s+='<circle class="gnode" cx="'+n.x+'" cy="'+n.y+'" r="'+n.r+'"/>'
+    +'<text class="glabel" x="'+n.x+'" y="'+(n.y+n.r+11)+'">'+esc(n.l)+'</text>';});
+  NEWN.forEach(function(n){s+='<circle class="gnode '+(n.orphan?'orphan':'new')+'" cx="'+n.x+'" cy="'+n.y+'" r="'+n.r+'"/>'
+    +'<text class="glabel '+(n.orphan?'orphan':'new')+'" x="'+n.x+'" y="'+(n.y+n.r+12)+'">'+esc(n.l)+'</text>';});
+  s+='</svg>';
+
+  return statusbar()
+    + '<div class="bighead"><h1>Graph</h1><p>16 notes. 3 added this week.</p></div>'
+    + '<div class="body"><div class="gwrap">'+s+'</div>'
+    + '<div class="gstat"><div><div class="v">16</div><div class="l">Notes</div></div>'
+    +   '<div><div class="v up">+3</div><div class="l">This week</div></div>'
+    +   '<div><div class="v bad">1</div><div class="l">Not linked</div></div></div>'
+    + '<div style="height:14px"></div>'
+    + '<div class="note-warn"><span>⚠</span><span><b>Colocation pricing</b> connects to nothing. '
+    +   'It probably belongs under a note you haven&#39;t written yet.</span></div>'
+    + '<p class="hint" style="padding:16px 18px 24px">Green is new this week. '
+    +   'Tap a dot to open the note.</p></div>'
+    + tabbar();
+}
+
+/* ---- more / settings ---- */
+function scMore(){
+  return statusbar()
+    + '<div class="bighead"><h1>More</h1><p>second-brain · 214 notes</p></div>'
+    + '<div class="body"><div class="pad">'
+    +   '<div class="grp">'
+    +     row('🧠','How it writes','claude-opus-5','ai')
+    +     row('🎧','How it hears you','On your Mac','ai')
+    +     row('💬','How it answers','claude-sonnet-5','ai')
+    +   '</div>'
+    +   '<p class="hint">Answers only use your own notes. If yours don&#39;t cover a question, it says so instead of guessing.</p>'
+    +   '<div class="grp">'
+    +     row('◈','Your vault','second-brain')
+    +     row('🌐','Web address','vaultd.app/…')
+    +     row('↺','Last synced','2 min ago')
+    +   '</div>'
+    +   '<div class="sectlab" style="padding:6px 2px">Other ways to capture</div>'
+    +   '<div class="grp">'
+    +     row('✈','Telegram','Not set up')
+    +     row('✉','Email','On')
+    +     row('⌘','Shortcuts & API','1 token')
+    +   '</div>'
+    +   '<p class="hint">You don&#39;t need any of these. They just add another way in.</p>'
+    + '</div></div>' + tabbar();
+}
+function row(ic,t,v,go){
+  return '<button class="rowbtn" type="button"'+(go?' data-more="'+go+'"':'')+'><span class="ic">'+ic+'</span>'
+    + '<span style="flex:1;min-width:0"><span class="rt">'+t+'</span></span>'
+    + '<span class="val">'+v+'</span><span class="go">›</span></button>';
+}
+
+/* =================== setup =================== */
+
+var STEPS=[
+  {t:"Connect GitHub",  d:"Where your notes will live."},
+  {t:"Pick a vault",    d:"Open one you have, or start fresh."},
+  {t:"Set it up",       d:"Folders and a place for new notes."},
+  {t:"Choose the AI",   d:"Cloud, or your own machine."},
+  {t:"Ways to capture", d:"Built in already. Add more later.",opt:true},
+  {t:"Build it",        d:"Takes a few seconds."},
+  {t:"Try it",          d:"Say something and see what happens.",opt:true},
+  {t:"Done",            d:"Start using it."}
+];
+var GH='<svg width="19" height="19" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>';
+
+function head(n,t,p){return '<div style="padding:4px 18px 12px;border-bottom:1px solid var(--rule-soft);flex:0 0 auto">'
+  + '<p class="eyebrow">Step '+n+' of 8'+(STEPS[n-1].opt?' · optional':'')+'</p>'
+  + '<h1 style="font-family:var(--display);font-size:24px;font-weight:700;letter-spacing:-.02em;margin:0 0 4px;line-height:1.16">'+t+'</h1>'
+  + '<p style="margin:0;font-size:14px;color:var(--muted);line-height:1.45">'+p+'</p></div>';}
+
+function p1(){
+  if(!authed) return head(1,'Connect GitHub','Your notes are stored in your own GitHub repository. You can take them with you at any time.')
+    + '<div class="sbody"><button class="oauth" type="button" data-auth="1">'+GH+'Continue with GitHub</button>'
+    + '<div class="consent"><div class="ct">This app will be able to</div><ul>'
+    + '<li><span class="mk">✓</span><span><b>Make a new repository</b><span>Only when you ask for one.</span></span></li>'
+    + '<li><span class="mk">✓</span><span><b>Read and write your notes</b><span>Only in the repositories you pick.</span></span></li>'
+    + '</ul></div>'
+    + '<p class="hint">No password. You can disconnect from GitHub settings whenever you like.</p></div>';
+  return head(1,'Connected','You can change or remove this access from GitHub at any time.')
+    + '<div class="sbody"><div class="idcard"><div class="avatar">TC</div><div>'
+    + '<div style="font-weight:600;font-size:14.5px">tin-chung-architect</div>'
+    + '<div class="hint">Connected today</div></div></div>'
+    + '<div class="row ok"><span class="mk">✓</span><span>Ready to make your vault</span></div>'
+    + '<p class="altline"><button type="button" data-auth="0">Use a different account</button></p></div>';
+}
+function p2(){return head(2,'Pick a vault','A vault is one GitHub repository. You can have more than one and switch between them.')
+  + '<div class="sbody"><div class="field"><span class="lab">Found in your account</span>'
+  + '<button class="vrow" type="button"><span class="vi">◈</span><span style="min-width:0">'
+  +   '<span class="vn">learn-hft</span><span class="vm">58 notes · already a vault</span></span><span class="vb">open</span></button>'
+  + '</div><div class="orline">or</div>'
+  + '<button class="vrow" type="button" aria-pressed="true"><span class="vi">+</span><span style="min-width:0">'
+  +   '<span class="vn">second-brain</span><span class="vm">Start a new, private vault</span></span><span class="vb">new</span></button>'
+  + '<div class="lockline"><span class="tx">Keep it private</span>'
+  +   '<button class="switch" type="button" role="switch" aria-checked="true" disabled aria-label="Private"></button></div>'
+  + '<p class="hint">Always on for new vaults. Half-formed thoughts shouldn&#39;t be public, and you can&#39;t undo that later.</p></div>';}
+function p3(){return head(3,'Set it up','We&#39;ll add a few folders and a place for new notes to land.')
+  + '<div class="sbody"><div class="tree"><span class="d">Start</span>\n<span class="h">Inbox</span>          <span class="c">← new notes land here</span>\n'
+  + '<span class="d">Foundations</span>\n<span class="d">Deep Dives</span>\n<span class="d">Data and Research</span></div>'
+  + '<div class="lockline"><span class="tx">Also make a plain website</span>'
+  +   '<button class="switch" type="button" role="switch" aria-checked="true" aria-label="Website"></button></div>'
+  + '<p class="hint">A simple read-only copy saved next to your notes, so the repository is useful even without this app.</p>'
+  + '<div class="row"><span class="mk">→</span><span>Everything opens in Obsidian too. It&#39;s just Markdown files.</span></div></div>';}
+function p4(){return head(4,'Choose the AI','Four jobs. Each can use a cloud model or one running on your own machine.')
+  + '<div class="sbody"><div class="grp">'
+  + row('🎧','Hearing you','On your Mac')
+  + row('🖼','Reading images','claude-sonnet-5')
+  + row('🧠','Writing notes','claude-opus-5')
+  + row('💬','Answering','claude-sonnet-5')
+  + '</div>'
+  + '<div class="row ok"><span class="mk">✓</span><span>Voice stays on your Mac — nothing leaves your network</span></div>'
+  + '<p class="hint">Voice is the most personal thing you&#39;ll send, so it defaults to your own machine if you have one running.</p>'
+  + '<div class="row"><span class="mk">≈</span><span>About <b>half a cent</b> per voice note</span></div></div>';}
+function p5(){return head(5,'Ways to capture','Capture is already built in. Talk, type, or send a photo — nothing to set up.')
+  + '<div class="sbody"><div class="row ok"><span class="mk">✓</span><span><b>In the app</b> · ready now</span></div>'
+  + '<p class="hint">Add it to your home screen and it records voice and takes photos like any other app.</p>'
+  + '<div class="orline">optional</div>'
+  + '<button class="vrow" type="button"><span class="vi">✈</span><span style="min-width:0"><span class="vn">Telegram</span>'
+  +   '<span class="vm">Capture from your lock screen</span></span><span class="vb">add</span></button>'
+  + '<button class="vrow" type="button"><span class="vi">✉</span><span style="min-width:0"><span class="vn">Email</span>'
+  +   '<span class="vm">Forward anything to a private address</span></span><span class="vb">add</span></button>'
+  + '<p class="hint">You can add these any time. Skipping costs you nothing.</p></div>';}
+function p6(){return head(6,'Building your vault','One save to GitHub. You can undo it in a click.')
+  + '<div class="sbody"><div class="term" id="term"></div><div class="bar"><i id="bar"></i></div>'
+  + '<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted)">'
+  + '<span id="bs">Setting up…</span><span class="mono" id="bn">0 / 31</span></div></div>';}
+function p7(){
+  if(testState==='input') return head(7,'Try it','Say something you&#39;d actually want to remember. Nothing is saved until you approve it.')
+    + '<div class="sbody"><div class="mic"><button class="micbtn" type="button" data-test="run" aria-label="Record">'
+    + icon(IC.mic,34)+'</button><p class="miclab"><b>Hold to record</b><br>or tap to use a sample</p></div>'
+    + '<div class="orline">or type</div>'
+    + '<div class="inp" style="align-items:flex-start;min-height:74px;color:var(--gray)">Timing closure keeps failing on the parser path…</div></div>';
+  if(testState==='running') return head(7,'Working on it','This is what you&#39;ll see every time you capture something.')
+    + '<div class="sbody"><div class="draft" id="draft"></div></div>';
+  return head(7,'Here&#39;s what it made','Check it, then keep it or throw it away.')
+    + '<div class="sbody"><div class="card"><span class="ct">FPGA timing closure notes</span>'
+    + '<span class="cs">Timing closure keeps failing on the market-data parser path. The critical path runs through the checksum stage.</span>'
+    + '<div class="tags"><span class="tag">fpga</span><span class="tag">timing</span></div></div>'
+    + '<div class="row ok"><span class="mk">✓</span><span>Connects to <b>2 notes</b> you already have</span></div>'
+    + '<p class="hint">It wanted to link to a note called <b>Timing Analysis</b>, which you don&#39;t have. '
+    + 'That link was dropped rather than left broken.</p></div>';
+}
+function p8(){return head(8,'You&#39;re set','Your vault is live and ready.')
+  + '<div class="sbody"><div style="display:flex;gap:13px;align-items:center">'
+  + '<div class="done-mark">✓</div><div><div style="font-weight:600">second-brain</div>'
+  + '<div class="hint">31 files · private</div></div></div>'
+  + '<div class="row ok"><span class="mk">✓</span><span>'+(testSkipped?'Nothing waiting yet':'<b>1 note</b> waiting in Review')+'</span></div>'
+  + '<button class="btn pri wide" type="button" data-go2app="1" style="padding:14px">Start capturing</button>'
+  + '<p class="hint" style="text-align:center">Add this to your home screen for one-tap voice capture.</p></div>';}
+
+var P=[p1,p2,p3,p4,p5,p6,p7,p8];
+
+var BUILD=[['g','$ setting up second-brain'],['a','▸ create repository            private'],
+ ['','▸ add folders'],['','▸ add Inbox'],['','▸ add Obsidian settings'],['','▸ add website template'],
+ ['a','▸ save 31 files                a1b2c3d'],['a','▸ turn on capture              ok'],
+ ['a','▸ build connections            ok'],['s','✓ ready in 7.4s']];
+var DL=[['📥','Got it','0.0s'],['🎧','Listening to your note','1.4s'],['🧠','Writing it up','3.1s'],
+ ['🔗','Finding what it connects to','3.4s'],['📄','Ready for you','3.5s']];
+
+function runBuild(){
+  var t=document.getElementById('term'),b=document.getElementById('bar'),
+      st=document.getElementById('bs'),nu=document.getElementById('bn');
+  if(!t)return; t.textContent='';
+  function line(i){var d=document.createElement('div');if(BUILD[i][0])d.className=BUILD[i][0];
+    d.textContent=BUILD[i][1];t.appendChild(d);t.scrollTop=t.scrollHeight;
+    b.style.width=Math.round(((i+1)/BUILD.length)*100)+'%';
+    nu.textContent=Math.min(31,Math.round(31*(i+1)/BUILD.length))+' / 31';
+    if(i===BUILD.length-1)st.textContent='Done';}
+  if(reduced()){for(var k=0;k<BUILD.length;k++)line(k);return;}
+  for(var i=0;i<BUILD.length;i++)(function(i){timers.push(setTimeout(function(){line(i);},90+i*190));})(i);
+}
+function runDraft(){
+  var el=document.getElementById('draft');if(!el)return;el.textContent='';
+  function line(i){var last=i===DL.length-1,d=document.createElement('div');
+    d.innerHTML='<span>'+DL[i][0]+'</span><span class="'+(last?'now':'')+'" style="flex:1">'+DL[i][1]+'</span>'
+      +'<span class="mono" style="font-size:11px;color:var(--gray)">'+DL[i][2]+'</span>';
+    el.appendChild(d);}
+  if(reduced()){for(var k=0;k<DL.length;k++)line(k);testState='result';render();return;}
+  for(var i=0;i<DL.length;i++)(function(i){timers.push(setTimeout(function(){line(i);},260+i*440));})(i);
+  timers.push(setTimeout(function(){testState='result';render();},260+DL.length*440+340));
+}
+function sfoot(){
+  var dots='';for(var i=0;i<8;i++)dots+='<i class="'+(i===cur?'on':'')+'"></i>';
+  var l='',r='';
+  if(cur===6){
+    if(testState==='input'){l='<button class="btn" type="button" data-skip="1">Skip</button>';
+      r='<button class="btn pri" style="flex:1" type="button" data-test="run">Try it</button>';}
+    else if(testState==='running'){r='<button class="btn" style="flex:1" type="button" disabled>Working…</button>';}
+    else{l='<button class="btn dan" type="button" data-test="reset">Throw away</button>';
+      r='<button class="btn pri" style="flex:1" type="button" data-go="7">Keep it</button>';}
+  }else{
+    var last=cur===7;
+    l=cur>0?'<button class="btn" type="button" data-go="'+(cur-1)+'">Back</button>':'';
+    r='<button class="btn pri" style="flex:1" type="button" data-go="'+(last?0:cur+1)+'">'
+      +(last?'Start over':cur===5?'Try it':'Continue')+'</button>';
+  }
+  return '<div class="sfoot"><div class="dots">'+dots+'</div>'+l+r+'</div>';
+}
+
+/* =================== shell =================== */
+
+var DECK={
+  app:'Mobile first — this is the PWA, and later the iOS app. Plain language on the surface, '
+     + 'technical detail one tap down. <b>Tap a source under an answer</b> to jump into the note with the exact lines highlighted.',
+  setup:'Eight screens from a GitHub account to a working vault. No jargon, and two of them are skippable.'
+};
+var FOOT={
+  app:'Example data. Highlights, related notes and the graph all come from links you wrote — nothing is inferred.',
+  setup:'Example data, not live credentials.'
+};
+
+function sideNotes(){
+  if(view==='setup'){
+    return '<p class="nhead">First run</p><ul class="rail" id="rail"></ul>';
+  }
+  return '<p class="nhead">What changed in this pass</p><ul class="nlist">'
+   + '<li class="hi"><b>Citations open the note</b><span>Tap a source under an answer and it pushes to the note, '
+   + 'scrolled to the exact sentence, highlighted. Two passages, with jump arrows between them. '
+   + 'Requires span-level provenance: the model quotes, the server locates the quote, and if it can&#39;t find it '
+   + 'you get the note without a highlight rather than a wrong one.</span></li>'
+   + '<li class="hi"><b>Related notes, not recommendations</b><span>Ranked from outbound links, inbound links, '
+   + 'then shared tags — every row says which. Nothing is guessed.</span></li>'
+   + '<li><b>Plain words everywhere</b><span>Promote → <b>Keep</b>. Staged → <b>Waiting</b>. '
+   + 'Orphan → <b>Not linked</b>. Diff → a readable <b>Preview</b>. Repository, commit SHA and frontmatter '
+   + 'live behind <code>⚙ Technical details</code>.</span></li>'
+   + '<li><b>Thumb reach</b><span>Bottom tab bar, 44px targets, back at top-left, destructive action '
+   + 'furthest from the thumb. Composer sits above the tab bar with the mic beside send.</span></li>'
+   + '<li><b>Portrait graph</b><span>Re-laid out for a narrow screen with readable labels, not a desktop '
+   + 'graph squeezed sideways.</span></li></ul>';
+}
+
+function render(){
+  clearTimers();
+  var sc=document.getElementById('screen');
+  if(view==='setup'){ sc.innerHTML = statusbar() + P[cur]() + sfoot();
+    if(cur===5)runBuild(); if(cur===6&&testState==='running')runDraft();
+  } else if(pushed && pushed.k==='note'){ sc.innerHTML = scNote(pushed.id);
+  } else if(pushed && pushed.k==='draft'){ sc.innerHTML = scDraft(pushed.id);
+  } else { sc.innerHTML = tab==='chat'?scChat(): tab==='review'?scReview(): tab==='graph'?scGraph(): scMore(); }
+
+  var b=sc.querySelector('.body'), th=sc.querySelector('.thread');
+  if(th&&b) b.scrollTop=b.scrollHeight;
+  var act=sc.querySelector('mark.active');
+  if(act&&b) b.scrollTop=Math.max(0,act.offsetTop-150);
+
+  var rail=document.getElementById('rail');
+  if(rail){
+    Array.prototype.forEach.call(rail.children,function(li,i){
+      var st=i<cur?(i===6&&testSkipped?'skip':'done'):i===cur?'now':'todo';
+      li.dataset.state=st;
+      li.querySelector('.num').textContent=st==='done'?'✓':st==='skip'?'–':(i+1);
+    });
+  }
+}
+
+function buildRail(){
+  var rail=document.getElementById('rail'); if(!rail)return;
+  STEPS.forEach(function(s,i){
+    var li=document.createElement('li'); if(s.opt)li.dataset.opt='1';
+    li.innerHTML='<button type="button"><span class="num">'+(i+1)+'</span><span><span class="rt">'+s.t
+      +'</span><span class="rd">'+s.d+'</span></span></button>';
+    li.querySelector('button').addEventListener('click',function(){cur=i;render();});
+    rail.appendChild(li);
+  });
+}
+
+function setView(v){
+  view=v; pushed=null;
+  document.getElementById('deck').innerHTML=DECK[v];
+  document.getElementById('foot').textContent=FOOT[v];
+  document.getElementById('wm').textContent=v==='app'?'://app':'://first-run';
+  Array.prototype.forEach.call(document.querySelectorAll('.viewpick button'),function(b){
+    b.setAttribute('aria-pressed',b.dataset.view===v);});
+  document.getElementById('notes').innerHTML=sideNotes();
+  if(v==='setup')buildRail();
+  render();
+}
+
+document.querySelector('.viewpick').addEventListener('click',function(e){
+  var b=e.target.closest('[data-view]'); if(b)setView(b.dataset.view);
+});
+
+document.getElementById('screen').addEventListener('click',function(e){
+  var t=e.target, x;
+  if((x=t.closest('[data-open]'))){ pushed={k:'note',id:x.dataset.open};
+    if(x.dataset.h) hl=parseInt(x.dataset.h,10); render(); return; }
+  if((x=t.closest('[data-hl]'))){ hl=parseInt(x.dataset.hl,10); render(); return; }
+  if((x=t.closest('[data-draft]'))){ pushed={k:'draft',id:x.dataset.draft}; render(); return; }
+  if((x=t.closest('[data-back]'))){ pushed=null; render(); return; }
+  if((x=t.closest('[data-tab]'))){ tab=x.dataset.tab; pushed=null; render(); return; }
+  if((x=t.closest('[data-mode]'))){ chatMode=x.dataset.mode; render(); return; }
+  if((x=t.closest('[data-rec]'))){ recording=x.dataset.rec==='1'; render(); return; }
+  if((x=t.closest('[data-auth]'))){ authed=x.dataset.auth==='1'; render(); return; }
+  if((x=t.closest('[data-test]'))){ testState=x.dataset.test==='run'?'running':'input';
+    if(x.dataset.test==='run')testSkipped=false; render(); return; }
+  if((x=t.closest('[data-skip]'))){ testSkipped=true; testState='input'; cur=7; render(); return; }
+  if((x=t.closest('[data-go2app]'))){ tab='chat'; setView('app'); return; }
+  if((x=t.closest('[data-go]'))){
+    if(x.dataset.go==='7'&&cur===6)testSkipped=false;
+    cur=parseInt(x.dataset.go,10);
+    if(cur===0){testState='input';testSkipped=false;authed=false;}
+    render(); return; }
+  if((x=t.closest('.switch'))&&!x.disabled){
+    x.setAttribute('aria-checked',x.getAttribute('aria-checked')==='true'?'false':'true'); }
+});
+
+setView('app');
+})();
+</script>

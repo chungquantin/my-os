@@ -1,3 +1,8 @@
 [workspace]
 members = ["projects/*"]
+# projects/vaultd is spec-only for now: no Cargo.toml, which the members glob cannot load.
+# Delete this exclude in the SAME commit that adds projects/vaultd/Cargo.toml — cargo does
+# not warn about an exclude that shadows a real crate, so leaving it makes --workspace
+# builds and tests silently skip vaultd. See projects/vaultd/SPEC.md §4.
+exclude = ["projects/vaultd"]
 resolver = "2"

@@ -11,6 +11,8 @@ keeping; promoted notes are committed to the repository and enter the graph.
 
 Version: 0.3 draft · Rust 2024 · supersedes the v0.1 single-user daemon spec
 
+**Interactive prototype:** [vaultd mobile PWA](static/prototypes/vaultd/app.html) — the phone-side capture and review flow, v0.4. Source: `projects/vaultd/prototype/app.html`.
+
 ---
 
 ## 1. Purpose and scope

@@ -24,7 +24,9 @@ const filesToCopy = async (argv: Argv, cfg: QuartzConfig, excludeExtensions: Set
   for (const ext of excludeExtensions) {
     excludePatterns.push(`**/*${ext}`)
   }
-  return await glob("**", argv.directory, excludePatterns)
+  // The generated content directory is listed in site/.gitignore, so globby's default
+  // gitignore handling would skip every asset in it. Match build.ts and opt out.
+  return await glob("**", argv.directory, excludePatterns, false)
 }
 
 const copyFile = async (argv: Argv, fp: FilePath) => {

@@ -140,6 +140,30 @@ In the Kenyan example, clustering at school level (`G = 111`, cluster sizes 19-6
 
 The time-series analogue is **HAC** (heteroskedasticity and autocorrelation consistent) standard errors — Newey-West and friends. Same sandwich, meat built from a weighted sum of autocovariances up to a bandwidth. See [[15 - Time Series]].
 
+## Which standard errors? A decision tree
+
+```mermaid
+flowchart TD
+  S{"How were the data<br/>generated?"}
+  S -->|"i.i.d. cross-section"| A["HC2 or HC3<br/>robust"]
+  S -->|"observations come in groups"| B{"How many<br/>groups G?"}
+  S -->|"ordered in time"| C{"Is the model<br/>correctly specified?"}
+  S -->|"panel: units over time"| D["Cluster by unit"]
+  S -->|"two dimensions of dependence"| E["Two-way clustering"]
+
+  B -->|"G is large,<br/>say 50 or more"| B1["Cluster-robust<br/>at the assignment level"]
+  B -->|"G is small,<br/>under about 30"| B2["Wild cluster bootstrap<br/>and REPORT G"]
+  B -->|"only a handful of<br/>treated clusters"| B3["DANGER<br/>SE biased toward zero.<br/>See Conley-Taber"]
+
+  C -->|"yes, e.g. a correct AR(p)"| C1["Ordinary robust SEs<br/>HAC not needed"]
+  C -->|"no, or it is an approximation"| C2["HAC / Newey-West<br/>report kernel and bandwidth"]
+
+  style S fill:#284b63,color:#fff
+  style B3 fill:#7b2d26,color:#fff
+```
+
+The default in most software is the homoskedastic formula, which is almost never the right branch of this tree.
+
 ## Decision table
 
 | Data structure | Use |

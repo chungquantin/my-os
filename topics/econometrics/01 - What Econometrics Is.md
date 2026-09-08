@@ -17,6 +17,21 @@ You have data. You want to say something about the world that is not just a desc
 
 Econometrics gives you separate machinery for each and, importantly, tells you when the machinery for prediction is being misused to answer a causal question.
 
+```mermaid
+flowchart LR
+  W["The world<br/>(population distribution)"] -->|"sampling"| D["Your data<br/>n observations"]
+  W -.->|"defines"| ESTIMAND["ESTIMAND<br/>the number you want<br/>fixed, unknown"]
+  D -->|"apply a formula"| ESTIMATOR["ESTIMATOR<br/>a rule, e.g. the sample mean"]
+  ESTIMATOR --> ESTIMATE["ESTIMATE<br/>0.14<br/>known, random"]
+  ESTIMATE -.->|"how far off?"| SD["Sampling distribution<br/>→ standard error, CI, test"]
+  ESTIMAND -.->|"is this what<br/>I actually care about?"| IDENT["IDENTIFICATION"]
+
+  style ESTIMAND fill:#284b63,color:#fff
+  style IDENT fill:#7b2d26,color:#fff
+```
+
+Two arrows do all the damage. The dashed arrow on the right is **inference** — how noisy is my number. The dashed arrow at the bottom is **identification** — is my number even the right target. Software computes the first and is silent about the second.
+
 ## Population and sample
 
 The central abstraction: there is a **population** — a probability distribution that describes how units in the world are generated. You observe a **sample** — `n` draws from it. The features of the population are fixed but unknown; the features of the sample are known but random.

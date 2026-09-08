@@ -62,6 +62,33 @@ The second term asks: would treated units have differed from untreated units eve
 
 There is a third term if effects are heterogeneous and correlated with selection ("differential selection into gains"), which is exactly Hansen's Jennifer/George example: Jennifers have both the bigger effect and the higher probability of attending. The naive comparison gives $8.25 when the true ATE is $7.00.
 
+## Choosing an identification strategy
+
+```mermaid
+flowchart TD
+  START{"What creates variation<br/>in the treatment D?"}
+
+  START -->|"a coin flip<br/>you controlled"| R["RANDOMIZATION<br/>compare group means<br/>estimand: ATE"]
+  START -->|"a rule based on<br/>observed covariates"| CIA["CONDITION ON X<br/>regression, matching, weighting<br/>estimand: ATE or ATT"]
+  START -->|"something that shifts D<br/>but not Y directly"| IV["INSTRUMENTAL VARIABLES<br/>estimand: LATE, compliers only"]
+  START -->|"the same unit is seen<br/>before and after"| FE["FIXED EFFECTS<br/>kills time-invariant confounders"]
+  START -->|"a policy hit one group<br/>and not another"| DID["DIFFERENCE IN DIFFERENCES<br/>estimand: ATT"]
+  START -->|"a cutoff in an<br/>administrative rule"| RDD["REGRESSION DISCONTINUITY<br/>estimand: ATE at the cutoff"]
+  START -->|"none of the above"| NONE["You have an association.<br/>Say so."]
+
+  R --> A1["needs: nothing else"]
+  CIA --> A2["needs: CIA plus overlap<br/>UNTESTABLE"]
+  IV --> A3["needs: exclusion, relevance,<br/>monotonicity. Check first-stage F"]
+  FE --> A4["needs: strict exogeneity<br/>fails with lagged Y or feedback"]
+  DID --> A5["needs: parallel trends,<br/>no anticipation, no coincident shock"]
+  RDD --> A6["needs: continuity at c,<br/>no manipulation of the running variable"]
+
+  style START fill:#284b63,color:#fff
+  style NONE fill:#7b2d26,color:#fff
+```
+
+Every box below the fork is an **assumption about unobservables**. None of them can be proved by the data that use them. A good empirical paper spends more words defending its box than estimating.
+
 ## The identification assumptions, from strongest to weakest
 
 **1. Randomization.** `D` is independent of `(Y(0), Y(1))` by design. Then `E[Y|D=1] - E[Y|D=0] = ATE` exactly. Nothing else needed. This is why RCTs are the benchmark.
@@ -107,6 +134,31 @@ Hansen's books work in the potential outcomes tradition, but DAG reasoning answe
 - **Collider** — caused by both `D` and `Y`. *Never control.* Conditioning on it creates a spurious association where none existed.
 - **Instrument** — causes `D`, no other path to `Y`. Use as an instrument; do not simply add as a control.
 - **Post-treatment variable** — anything realized after treatment. Treat as suspect by default.
+
+```mermaid
+flowchart TD
+  subgraph GOOD["CONTROL FOR THESE"]
+    CF["Confounder<br/>causes both D and Y"]
+    CF --> D1["D"]
+    CF --> Y1["Y"]
+  end
+
+  subgraph BAD1["DO NOT CONTROL: mediator"]
+    D2["D"] --> M["Mediator<br/>caused by D"]
+    M --> Y2["Y"]
+  end
+
+  subgraph BAD2["NEVER CONTROL: collider"]
+    D3["D"] --> COL["Collider<br/>caused by both"]
+    Y3["Y"] --> COL
+  end
+
+  style CF fill:#84a59d,color:#000
+  style M fill:#e8a87c,color:#000
+  style COL fill:#7b2d26,color:#fff
+```
+
+Controlling for a mediator gives you only the direct effect. Controlling for a collider **creates** bias where there was none.
 
 The single most common applied error is throwing every available variable into the regression as a "control". Bad controls actively create bias.
 

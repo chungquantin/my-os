@@ -9,6 +9,23 @@ Source: Hansen, *Econometrics*, chapter 28 (sections 28.15-28.31); *Probability 
 
 Model selection picks one model and throws the rest away. This note covers the two things you can do instead: **shrink** toward a simpler model, or **average** across models. Both usually beat selection.
 
+## The spectrum: select, shrink, or average
+
+```mermaid
+flowchart LR
+  SEL["SELECT<br/>pick one model,<br/>discard the rest"] --> SELP["Hard threshold.<br/>High variance.<br/>Post-selection CIs<br/>can cover 62 pct<br/>instead of 95 pct."]
+  SHR["SHRINK<br/>pull toward a<br/>restricted model"] --> SHRP["Soft threshold.<br/>James-Stein dominates<br/>the MLE for K over 2.<br/>Always use positive-part."]
+  AVG["AVERAGE<br/>weights on the simplex<br/>across many models"] --> AVGP["Generalizes shrinkage.<br/>Jackknife averaging<br/>= stacking.<br/>No homoskedasticity needed."]
+
+  SEL -.->|"a vertex of<br/>the simplex"| AVG
+  SHR -.->|"two models"| AVG
+
+  style SELP fill:#7b2d26,color:#fff
+  style AVGP fill:#84a59d,color:#000
+```
+
+Model selection is the special case of averaging where all the weight sits on one vertex. Shrinkage is the two-model case. Averaging is the general object — and it usually wins.
+
 ## Why not just select?
 
 ### Best subset and stepwise regression

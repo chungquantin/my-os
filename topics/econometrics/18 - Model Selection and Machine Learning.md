@@ -9,6 +9,24 @@ Source: Hansen, *Econometrics*, chapters 28-29.
 
 ## Two different goals
 
+```mermaid
+flowchart TD
+  G{"What is the goal?"}
+  G -->|"minimize out-of-sample error"| P["PREDICTION"]
+  G -->|"honest CI for ONE coefficient<br/>with many nuisance controls"| I["INFERENCE ON A PARAMETER"]
+
+  P --> P1["Cross-validation, ridge, lasso,<br/>trees, forests, ensembling.<br/>Bias for variance is a fair trade."]
+  I --> BAD["Naive route:<br/>lasso-select, then t-test.<br/>COVERAGE IS BROKEN."]
+  BAD --> WHY["A control with a small outcome<br/>coefficient can still be a serious<br/>confounder. Lasso only looks<br/>at one half of the OVB product."]
+  WHY --> FIX["Fix: double selection,<br/>partialling-out, or DML"]
+
+  style G fill:#284b63,color:#fff
+  style BAD fill:#7b2d26,color:#fff
+  style FIX fill:#84a59d,color:#000
+```
+
+
+
 - **Prediction**: minimize out-of-sample error. Bias is fine if it buys variance. Interpretability optional.
 - **Inference on a specific parameter**: get an honest confidence interval for one coefficient of interest, with many nuisance controls.
 
@@ -119,6 +137,22 @@ Efficiency-wise, `θ̂_PR` is more parsimonious than double selection (different
 Stata: `poregress`. R: `hdm`.
 
 ### 3. Double / debiased machine learning (DML)
+
+```mermaid
+flowchart LR
+  D["Split the sample<br/>into K folds"] --> E["For fold k:<br/>estimate the nuisance functions<br/>on all the OTHER folds"]
+  E --> R["Form residuals ON fold k<br/>using those leave-fold-out fits"]
+  R --> S["Stack all folds<br/>and regress residual Y<br/>on residual D"]
+  S --> OUT["theta-hat plus ordinary<br/>robust standard errors"]
+
+  ORTH["Why it survives ML mistakes:<br/>the partialled-out moment has<br/>ZERO sensitivity to nuisance error<br/>(Neyman orthogonality)"]
+  ORTH -.-> S
+
+  style D fill:#284b63,color:#fff
+  style OUT fill:#84a59d,color:#000
+```
+
+
 
 Chernozhukov, Chetverikov, Demirer, Duflo, Hansen, Newey, Robins (2018). Adds **cross-fitting** to the partialling-out estimator:
 

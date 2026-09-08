@@ -22,6 +22,17 @@ The **bootstrap** treats the empirical distribution of your data (the "empirical
 
 Standard choice: `B = 1,000` for standard errors, `B = 10,000` for confidence intervals and tests (quantiles in the tails need more draws).
 
+```mermaid
+flowchart LR
+  POP["Population<br/>cannot resample from it"] -.->|"one draw"| SAMP["Your sample<br/>n observations"]
+  SAMP -->|"treat as the population"| BOOT["Draw n rows<br/>WITH replacement"]
+  BOOT --> EST["Compute theta-hat-star"]
+  EST -->|"repeat B times"| DIST["Distribution of theta-hat-star"]
+  DIST --> OUT["Standard error, bias,<br/>confidence interval, p-value"]
+
+  style SAMP fill:#284b63,color:#fff
+```
+
 **Key mental move**: in the bootstrap universe, `θ̂` (your original estimate) *is* the true parameter. That is why bootstrap statistics are centered at `θ̂`, not at zero or at a hypothesized value. Getting this centering wrong is the most common bootstrap bug.
 
 ## What the bootstrap gives you

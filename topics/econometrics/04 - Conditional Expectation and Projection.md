@@ -9,6 +9,21 @@ Source: Hansen, *Econometrics*, chapter 2. This is the most important conceptual
 
 ## Three different objects called "regression"
 
+```mermaid
+flowchart TD
+  DATA["Population distribution of Y and X"]
+  DATA --> CEF["1. CEF<br/>E of Y given X<br/>the true conditional mean<br/>generally nonlinear"]
+  CEF -->|"best LINEAR approximation<br/>under squared loss"| PROJ["2. Linear projection<br/>X-prime beta<br/>THIS is what OLS estimates"]
+  CEF -.->|"needs: conditional independence<br/>D and U independent given X"| CAUSE["3. Causal effect<br/>what happens if you<br/>intervene on X"]
+  PROJ -.->|"equal only if the<br/>CEF is truly linear"| CEF
+
+  style PROJ fill:#284b63,color:#fff
+  style CAUSE fill:#7b2d26,color:#fff
+```
+
+Each arrow is an assumption you have to argue for. OLS lands you at box 2 for free. Getting to box 1 needs linearity of the CEF. Getting to box 3 needs the CIA, which no test can verify.
+
+
 Confusion here causes most misinterpretation of regression output. There are three distinct population objects:
 
 1. **The conditional expectation function (CEF)** `m(x) = E[Y | X = x]`. The true average of `Y` at each value of `X`. Generally nonlinear. Always exists (as long as `E|Y| < ∞`).
@@ -105,6 +120,17 @@ where `Γ` is the projection coefficient from regressing `X₂` on `X₁`. The b
 
 ```
 bias = (relation between omitted and included variable) × (effect of omitted variable)
+```
+
+```mermaid
+flowchart LR
+  OMIT["Omitted variable X2<br/>e.g. ability"]
+  OMIT -->|"effect on Y: beta2"| Y["Outcome Y<br/>wage"]
+  OMIT -->|"relation to X1: Gamma"| X1["Included regressor X1<br/>schooling"]
+  X1 -->|"true effect: beta1"| Y
+  BIAS["Short-regression coefficient<br/>gamma1 = beta1 + Gamma times beta2"]
+
+  style BIAS fill:#7b2d26,color:#fff
 ```
 
 **Sign reasoning.** If the omitted variable raises `Y` (`β₂ > 0`) and is positively related to `X₁` (`Γ > 0`), the short regression *overstates* `β₁`. Ability and schooling is the classic case: ability raises wages and is positively correlated with schooling, so a wage-on-schooling regression overstates the return to schooling.

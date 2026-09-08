@@ -305,6 +305,28 @@ Workarounds:
 - **Bias-correction methods** for large `T`.
 - **Linear probability model with fixed effects**: biased for the true nonlinear model but transparent and consistent for the linear projection. In causal designs, often the pragmatic choice.
 
+## Choosing a method by outcome type
+
+```mermaid
+flowchart TD
+  Y{"What does the<br/>outcome look like?"}
+  Y -->|"binary 0/1"| B{"What is the goal?"}
+  Y -->|"unordered categories"| MC["Multinomial / conditional logit<br/>watch IIA; mixed logit relaxes it"]
+  Y -->|"ordered categories"| OC["Ordered probit or logit"]
+  Y -->|"counts, or any<br/>non-negative variable"| CNT["Poisson QMLE<br/>plus robust SEs<br/>no distributional assumption,<br/>handles zeros and fixed effects"]
+  Y -->|"piled up at a boundary"| CEN{"How much censoring?"}
+  Y -->|"observed only for a<br/>selected subsample"| SEL["Heckman selection model<br/>NEEDS an exclusion restriction"]
+
+  B -->|"a causal estimate<br/>inside a design"| LPM["Linear probability model<br/>plus robust or clustered SEs"]
+  B -->|"predicted probabilities"| PS["Probit SERIES model<br/>flexible AND respects 0 to 1"]
+
+  CEN -->|"small share, say under 5 pct"| OLSOK["Plain OLS is defensible.<br/>Greene: slope bias is about<br/>the censoring proportion"]
+  CEN -->|"large share"| CLAD["CLAD / CQR<br/>robust to censoring AND non-normality.<br/>Preferred over Tobit."]
+
+  style Y fill:#284b63,color:#fff
+  style CLAD fill:#84a59d,color:#000
+```
+
 ## Practical guidance
 
 1. For a **causal** design (DiD, IV, RDD) with a binary outcome, the LPM with robust or clustered standard errors is usually the right choice. Transparency and compatibility with the design beat distributional fidelity.

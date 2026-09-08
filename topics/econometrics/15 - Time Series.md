@@ -52,6 +52,23 @@ i.i.d.  ⊂  MDS  ⊂  white noise
 - **Martingale difference sequence (MDS)**: `E[eₜ | ℱₜ₋₁] = 0`. Unforecastable **in the mean**, but other moments may be forecastable. `eₜ = uₜuₜ₋₁` with `uₜ` i.i.d. normal is an MDS and is not i.i.d. — its squares are serially correlated. Conditional heteroskedasticity (ARCH/GARCH) lives here.
 - **White noise**: mean zero, finite variance, `cov(eₜ, eₜ₋ₖ) = 0`. Serially *uncorrelated* but possibly forecastable in the mean. `eₜ = uₜ + uₜ₋₁uₜ₋₂` is white noise but not an MDS.
 
+```mermaid
+flowchart LR
+  subgraph WN["WHITE NOISE: serially uncorrelated"]
+    direction LR
+    subgraph MDS["MDS: unforecastable in the MEAN"]
+      direction LR
+      IID["i.i.d.<br/>fully unforecastable"]
+    end
+  end
+  WN --> USE["Which CLT applies<br/>decides whether you need HAC"]
+
+  style IID fill:#284b63,color:#fff
+  style USE fill:#84a59d,color:#000
+```
+
+ARCH and GARCH live in the MDS ring: unforecastable in the mean, very much forecastable in the variance.
+
 An MDS is always white noise (Theorem 14.10); the reverse fails. This nesting is what determines which CLT applies:
 
 ```

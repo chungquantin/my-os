@@ -40,6 +40,25 @@ The **Wald / IV estimator** is the sample analog. With a binary instrument this 
 ```
 — the reduced-form effect of `Z` on `Y`, divided by the first-stage effect of `Z` on `X`. This ratio structure is the source of everything good and everything bad about IV.
 
+```mermaid
+flowchart LR
+  Z["Instrument Z<br/>e.g. distance to college"]
+  X["Endogenous X<br/>schooling"]
+  Y["Outcome Y<br/>wage"]
+  U["Unobserved U<br/>ability"]
+
+  Z -->|"RELEVANCE<br/>must be strong: F over 10"| X
+  X -->|"beta: what you want"| Y
+  U --> X
+  U --> Y
+  Z -.->|"EXCLUSION<br/>this arrow must NOT exist<br/>untestable when just identified"| Y
+
+  style Z fill:#284b63,color:#fff
+  style U fill:#7b2d26,color:#fff
+```
+
+The whole method is: variation in `X` driven by `Z` is uncontaminated by `U`, so use only that slice of the variation. The cost is that you learn about a narrower population.
+
 ## Two-stage least squares (2SLS)
 
 With more instruments than endogenous regressors (`ℓ > k`, **overidentified**):

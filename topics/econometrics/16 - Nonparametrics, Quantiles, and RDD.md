@@ -31,6 +31,21 @@ m̂(x) = Σᵢ K((Xᵢ - x)/h) Yᵢ  /  Σᵢ K((Xᵢ - x)/h)
 
 ### The bandwidth is the whole ballgame
 
+```mermaid
+flowchart LR
+  SMALL["SMALL h<br/>few observations per window"] --> SB["low bias"]
+  SMALL --> SV["HIGH variance<br/>wiggly, overfit"]
+  BIG["LARGE h<br/>many observations per window"] --> BB["HIGH bias<br/>oversmoothed"]
+  BIG --> BV["low variance"]
+  SV --> OPT["MSE-optimal h<br/>shrinks like n to the power -1/5"]
+  BB --> OPT
+  OPT --> WARN["But at the optimal h the bias is the<br/>same order as the standard error,<br/>so intervals are miscentered.<br/>UNDERSMOOTH for honest inference."]
+
+  style OPT fill:#284b63,color:#fff
+  style WARN fill:#7b2d26,color:#fff
+```
+
+
 - Small `h`: few observations per neighborhood → low bias, high variance. Wiggly, overfit.
 - Large `h`: many observations → low variance, high bias. Smooth, oversmoothed, approaching a global fit.
 
@@ -120,6 +135,23 @@ The assumptions are genuinely minimal. But note what is identified: **only the v
 ```
 
 The extra independence condition is strong: it rules out individuals with high treatment effects being more likely to select into treatment. (Hahn, Todd and Van der Klaauw use the even stronger assumption that `θ` is constant.) This is the same structure as a Wald IV estimator with `1{X ≥ c}` as the instrument — and it inherits the weak-instrument problem: **a small discontinuity in `p(x)` means weak identification**. See [[11 - Instrumental Variables]].
+
+```mermaid
+flowchart TD
+  RV["Running variable X<br/>e.g. county poverty rate"]
+  RV --> RULE{"Is X at least c?<br/>cutoff = 59.1984"}
+  RULE -->|"no"| UNT["Untreated<br/>fit m-hat just BELOW c"]
+  RULE -->|"yes"| TRT["Treated<br/>fit m-hat just ABOVE c"]
+  UNT --> JUMP["theta-hat = m-hat(c+) minus m-hat(c-)<br/>the vertical gap at the cutoff"]
+  TRT --> JUMP
+  JUMP --> WHO["This is the ATE for units<br/>AT the cutoff only.<br/>Everything else is extrapolation."]
+
+  ASSUME["Identifying assumption:<br/>every other determinant of Y<br/>is CONTINUOUS at c"]
+  ASSUME -.-> JUMP
+
+  style RULE fill:#284b63,color:#fff
+  style WHO fill:#7b2d26,color:#fff
+```
 
 ### Estimation
 

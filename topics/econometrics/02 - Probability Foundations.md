@@ -107,6 +107,19 @@ You do not need to memorize densities. You need to know which one a test statist
 
 Everything about inference rests on these.
 
+```mermaid
+flowchart LR
+  X["Data of ANY shape:<br/>skewed, fat-tailed, discrete"] --> AVG["Take an average"]
+  AVG -->|"WLLN: needs a finite mean"| C["Converges to mu<br/>CONSISTENCY"]
+  AVG -->|"CLT: needs a finite variance"| N["Rescaled error becomes normal<br/>ASYMPTOTIC NORMALITY"]
+  C --> USE1["The estimator homes in<br/>on the truth"]
+  N --> USE2["Standard errors,<br/>confidence intervals, tests"]
+
+  style AVG fill:#284b63,color:#fff
+```
+
+Normality comes from **averaging**, not from the data being normal.
+
 **Weak law of large numbers (WLLN)**: if `X₁,...,Xₙ` are i.i.d. with `E|X| < ∞`, then the sample mean converges in probability to the population mean:
 ```
 X̄ₙ →p E[X]

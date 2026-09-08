@@ -32,6 +32,26 @@ Read the two components:
 - The "difference estimator" alone (+0.47 in NJ) attributes all time variation to the policy — it has no counterfactual.
 - Using Pennsylvania as a control asserts that, absent the policy, NJ employment would have moved like PA employment.
 
+```mermaid
+flowchart LR
+  subgraph BEFORE["Before"]
+    TB["Treated: 20.43"]
+    CB["Control: 23.38"]
+  end
+  subgraph AFTER["After"]
+    TA["Treated: 20.90"]
+    CA["Control: 21.10"]
+  end
+  TB -->|"+0.47<br/>policy PLUS time"| TA
+  CB -->|"-2.28<br/>time alone"| CA
+  TA --> DIFF["Difference of the differences<br/>0.47 minus -2.28 = +2.75<br/>THE ESTIMATE"]
+  CA --> DIFF
+
+  style DIFF fill:#84a59d,color:#000
+```
+
+The control group's change is the estimate of "what would have happened anyway". Subtracting it is the whole method — and **parallel trends** is the claim that this subtraction is valid.
+
 ## The regression form
 
 With `Stateᵢ` = 1 for New Jersey, `Timeₜ` = 1 for after, and `Dᵢₜ = Stateᵢ × Timeₜ`:
@@ -187,6 +207,22 @@ Yᵢₜ = Σ_{k ≠ -1} θ_k · 1{t - Eᵢ = k} + uᵢ + vₜ + εᵢₜ
 ```
 
 where `Eᵢ` is unit `i`'s treatment date and `k = -1` is the omitted reference period. Plot `θ̂_k` with confidence bands.
+
+```mermaid
+flowchart LR
+  P4["k = -4"] --> P3["k = -3"] --> P2["k = -2"] --> P1["k = -1<br/>REFERENCE<br/>normalized to 0"]
+  P1 --> T0["k = 0<br/>treatment"]
+  T0 --> F1["k = +1"] --> F2["k = +2"] --> F3["k = +3"]
+
+  PRE["Pre-period coefficients<br/>should be flat near zero.<br/>A trend here is evidence<br/>AGAINST parallel trends."]
+  POST["Post-period coefficients<br/>trace the dynamics:<br/>does the effect grow,<br/>fade, or jump?"]
+
+  P3 -.-> PRE
+  F2 -.-> POST
+
+  style P1 fill:#284b63,color:#fff
+  style T0 fill:#7b2d26,color:#fff
+```
 
 What it shows:
 

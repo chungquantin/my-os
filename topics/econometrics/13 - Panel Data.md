@@ -26,6 +26,25 @@ Yᵢₜ = Xᵢₜ'β + uᵢ + εᵢₜ
 
 Everything in panel econometrics turns on one question: **is `uᵢ` correlated with `Xᵢₜ`?**
 
+```mermaid
+flowchart TD
+  Q{"Is the individual effect u-i<br/>correlated with the regressors?"}
+  Q -->|"no, and you believe it"| RE["RANDOM EFFECTS<br/>GLS, more efficient<br/>can estimate time-invariant regressors"]
+  Q -->|"yes, or you are not sure"| FE["FIXED EFFECTS<br/>within transformation<br/>no assumption on u-i"]
+  Q -->|"ignore the structure"| POOL["POOLED OLS<br/>consistent only if u-i is uncorrelated<br/>MUST cluster by unit"]
+
+  FE --> COST["Cost: time-invariant regressors<br/>are wiped out and NOT identified.<br/>Variance rises. Measurement error worsens."]
+  RE --> RISK["Risk: collapses entirely if the<br/>assumption fails, which is the usual case"]
+
+  LDV{"Is a lagged Y on the<br/>right-hand side?"}
+  FE --> LDV
+  LDV -->|"yes"| NICK["NICKELL BIAS of order 1/T.<br/>Use Arellano-Bond or Blundell-Bond."]
+  LDV -->|"no"| OK["Standard FE is fine.<br/>Cluster by unit."]
+
+  style Q fill:#284b63,color:#fff
+  style NICK fill:#7b2d26,color:#fff
+```
+
 ## The three estimators
 
 ### 1. Pooled OLS

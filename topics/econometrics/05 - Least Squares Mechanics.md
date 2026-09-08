@@ -73,6 +73,17 @@ Split regressors into two groups: `Y = X₁'β₁ + X₂'β₂ + e`. Then `β̂�
 2. Regress `X₁` on `X₂`, keep residuals `X̃₁`.
 3. Regress `Ỹ` on `X̃₁`. The coefficient equals `β̂₁` from the full regression.
 
+```mermaid
+flowchart LR
+  Y["Y"] -->|"regress on X2,<br/>keep residuals"| YT["Y-tilde<br/>Y purged of X2"]
+  X1["X1"] -->|"regress on X2,<br/>keep residuals"| X1T["X1-tilde<br/>X1 purged of X2"]
+  YT --> FIN["Regress Y-tilde on X1-tilde"]
+  X1T --> FIN
+  FIN --> OUT["Coefficient equals beta1-hat<br/>from the FULL regression"]
+
+  style OUT fill:#84a59d,color:#000
+```
+
 **Why this matters**:
 
 - It is the precise meaning of "controlling for `X₂`": `β̂₁` uses only the variation in `X₁` that is *unrelated* to `X₂`.

@@ -55,13 +55,17 @@ That is enough to read and criticize a regression table honestly.
 1. [[07 - Asymptotic Theory]]
 2. [[09 - Bootstrap and Resampling]]
 3. [[18 - Model Selection and Machine Learning]]
-4. [[15 - Time Series]]
+4. [[21 - Shrinkage and Model Averaging]]
+5. [[15 - Time Series]]
+6. [[20 - Multivariate Regression and Factor Models]]
 
 **Theory path** (you want to know why any of it works):
 
 1. [[02 - Probability Foundations]]
 2. [[07 - Asymptotic Theory]]
 3. [[12 - GMM and Minimum Distance]]
+4. [[22 - Bayesian Methods]] — the alternative inferential framework
+5. [[23 - Nonparametric Density Estimation]] — where the smoothing trade-off is clearest
 
 ## Note index
 
@@ -86,6 +90,10 @@ That is enough to read and criticize a regression table honestly.
 | [[17 - Limited Dependent Variables]] | Probit/logit, count data, censoring, sample selection |
 | [[18 - Model Selection and Machine Learning]] | AIC, cross-validation, ridge, lasso, double selection, double ML |
 | [[19 - Applied Workflow and Common Mistakes]] | A practical checklist from data loading to reporting |
+| [[20 - Multivariate Regression and Factor Models]] | Systems, SUR, reduced rank, PCA, factor models, factor-augmented regression |
+| [[21 - Shrinkage and Model Averaging]] | James-Stein, positive-part, Mallows and jackknife averaging, stacking |
+| [[22 - Bayesian Methods]] | Priors, posteriors, conjugacy, credible sets, Bayes factors |
+| [[23 - Nonparametric Density Estimation]] | Histograms, kernel densities, bandwidth selection |
 | [[98 - Formula Cheatsheet]] | Every formula in these notes, grouped by topic |
 | [[99 - Econometrics Glossary]] | Terms and notation in one place |
 

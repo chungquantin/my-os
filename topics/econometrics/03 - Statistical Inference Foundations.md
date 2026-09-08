@@ -101,6 +101,8 @@ Setting the derivative to zero: `-n/λ + nX̄ₙ/λ² = 0`, so `λ̂ = X̄ₙ`. 
 
 This is the core tradeoff between MLE and least squares: MLE is more efficient when you know the distribution, and can be badly wrong when you do not. Least squares assumes less and asks less.
 
+MLE is also the natural entry point to [[22 - Bayesian Methods]], which takes the same fully specified probability model and adds a prior over the parameters.
+
 ## Confidence intervals
 
 A **confidence interval** is a data-dependent set that covers the true parameter with a stated probability. The standard asymptotic 95% interval:
@@ -134,3 +136,4 @@ Related:
 - [[07 - Asymptotic Theory]]
 - [[08 - Hypothesis Testing and Confidence Intervals]]
 - [[17 - Limited Dependent Variables]]
+- [[22 - Bayesian Methods]]

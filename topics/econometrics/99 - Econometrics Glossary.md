@@ -54,6 +54,10 @@ Terms as used in Hansen's *Econometrics* and *Probability and Statistics for Eco
 
 **Autocorrelation** — Correlation of a series with its own lags.
 
+**Bayes estimator** — The posterior mean (under quadratic loss) or posterior median (under absolute loss).
+
+**Bayes factor** — Ratio of marginal likelihoods for two models. With equal priors, pick the model whose Bayes factor exceeds one.
+
 **BIC** — Bayesian information criterion. `-2 log L + k log n`. Consistent for a true sparse model.
 
 **BLUE** — Best linear unbiased estimator. What OLS is under homoskedasticity (Gauss-Markov).
@@ -65,6 +69,8 @@ Terms as used in Hansen's *Econometrics* and *Probability and Statistics for Eco
 **CEF** — Conditional expectation function, `m(x) = E[Y | X = x]`. The best predictor under squared loss.
 
 **CIA** — Conditional independence assumption. Conditional on `X`, treatment is independent of unobservables. Licenses a causal reading of regression.
+
+**CLAD / CQR** — Censored least absolute deviations / censored quantile regression (Powell). Robust to both censoring and non-normality; Hansen's preferred censored-regression estimators.
 
 **Cluster-robust** — Standard errors allowing arbitrary correlation within groups. Effective sample size is `G`, not `n`.
 
@@ -80,6 +86,8 @@ Terms as used in Hansen's *Econometrics* and *Probability and Statistics for Eco
 
 **Cross-fitting** — Estimating nuisance functions on data excluding the fold where they are used. The key step in DML.
 
+**Credible interval** — Bayesian interval estimate: `P[θ ∈ C | X] = 1-η` computed from the posterior. Unlike a confidence interval, the probability statement really is about the parameter. HPD is the shortest such interval.
+
 **Delta method** — Standard errors for a smooth function of estimators, `var[g(β̂)] ≈ G'VG`.
 
 **DiD** — Difference in differences. See [[14 - Difference in Differences]].
@@ -88,13 +96,21 @@ Terms as used in Hansen's *Econometrics* and *Probability and Statistics for Eco
 
 **Double selection** — Lasso the outcome and the treatment equations separately, take the union of selected controls, then OLS.
 
+**Ensembling / stacking** — Model averaging across machine-learning algorithms by minimizing a cross-validation criterion over simplex weights. Identical to jackknife model averaging.
+
 **Endogeneity** — `E[Xe] ≠ 0`. Makes OLS inconsistent.
+
+**Ergodic theorem** — Time-series law of large numbers: strictly stationary + ergodic + `E‖Y‖ < ∞` implies `Ȳ →p μ`.
 
 **Ergodicity** — Time averages converge to population averages.
 
 **Estimand / estimator / estimate** — What you want / the formula / the number.
 
 **Exclusion restriction** — The instrument affects the outcome only through the endogenous variable. Untestable when just identified.
+
+**Factor model** — `X = ΛF + u`, so `Σ = ΛΛ' + Ψ`. Only the factor *space* is identified — individual loadings are arbitrary up to rotation and must never be interpreted.
+
+**Fan-Gijbels rule of thumb** — Global plug-in bandwidth for local polynomial and RDD estimation.
 
 **Fixed effects** — Unit-specific intercepts, allowed to correlate with regressors; removed by the within transformation.
 
@@ -105,6 +121,8 @@ Terms as used in Hansen's *Econometrics* and *Probability and Statistics for Eco
 **HAC** — Heteroskedasticity and autocorrelation consistent standard errors (Newey-West).
 
 **HC0-HC3** — Heteroskedasticity-consistent variance estimators. HC1 is Stata's `, r`; HC2 and HC3 are preferred.
+
+**Greene's rule** — Under censoring with normal regressors, the OLS slope is `β(1-π)` where `π` is the censoring proportion. A quick estimate of censoring bias.
 
 **Heteroskedasticity** — Error variance varying with `X`. The normal case in cross-sections.
 
@@ -118,17 +136,23 @@ Terms as used in Hansen's *Econometrics* and *Probability and Statistics for Eco
 
 **Instrument** — A variable correlated with the endogenous regressor and excluded from the outcome equation.
 
+**James-Stein estimator** — `θ̃ = (1 - (K-2)/(θ̂'V̂⁻¹θ̂))θ̂`. Dominates the MLE in mean squared error for every parameter value when `K > 2`. Always use the positive-part version.
+
 **Jackknife** — Leave-one-out resampling. Source of HC3 and the BCa acceleration constant.
 
 **Jensen's inequality** — `E[g(X)] ≥ g(E[X])` for convex `g`. Why `E[log Y] ≠ log E[Y]`.
 
 **J statistic / Sargan** — Test of overidentifying restrictions, `→d χ²_{ℓ-k}`.
 
+**Jackknife model averaging (JMA)** — Weights chosen by minimizing a leave-one-out cross-validation criterion over the simplex. Valid under heteroskedasticity. Called *stacking* in machine learning.
+
 **Kernel** — Weight function for local averaging; `h` is the bandwidth.
 
 **LATE** — Local average treatment effect. What IV estimates under heterogeneity: the effect on compliers.
 
 **Lasso** — `L1`-penalized regression. Produces exact zeros, so it selects variables.
+
+**Lag operator** — `LYₜ = Yₜ₋₁`. Lets AR/MA models be written as polynomials `α(L)Yₜ = θ(L)eₜ`.
 
 **Leverage** — `hᵢᵢ`, how much an observation pulls its own fitted value. Average `k/n`.
 
@@ -142,6 +166,10 @@ Terms as used in Hansen's *Econometrics* and *Probability and Statistics for Eco
 
 **Marginal effect** — `∂P/∂X` in a nonlinear model. Not the coefficient.
 
+**Mallows model averaging (MMA)** — Weights minimizing `ê(w)'ê(w) + 2σ̄²Σw_mK_m` over the simplex. Generalizes James-Stein to more than two models.
+
+**Martingale difference sequence (MDS)** — `E[eₜ | ℱₜ₋₁] = 0`. Unforecastable in the mean but possibly conditionally heteroskedastic. Strictly between i.i.d. and white noise.
+
 **Mean independence** — `E[e | X] = 0`. Stronger than zero correlation.
 
 **Mediator** — A variable on the causal path from treatment to outcome. Do not control for it if you want the total effect.
@@ -154,6 +182,8 @@ Terms as used in Hansen's *Econometrics* and *Probability and Statistics for Eco
 
 **MSE** — Mean squared error, `bias² + variance`.
 
+**Mixing** — Asymptotic independence of separated events; `α(ℓ) → 0`. Stronger than ergodicity, and what the CLT for correlated observations requires.
+
 **Nickell bias** — Bias of order `1/T` in dynamic fixed-effects panels.
 
 **Overidentified** — More moment conditions or instruments than parameters. Permits a specification test.
@@ -163,6 +193,8 @@ Terms as used in Hansen's *Econometrics* and *Probability and Statistics for Eco
 **Panel** — Repeated observations on the same units.
 
 **Parallel trends** — The DiD identifying assumption: absent treatment, groups would have moved together.
+
+**PCA** — Principal component analysis. The components are the eigenvectors of `var[X]`, ordered by eigenvalue. Not scale-invariant, so standardize first.
 
 **Percentile-t** — Bootstrap interval built from the studentized statistic. Achieves an asymptotic refinement.
 
@@ -186,15 +218,23 @@ Terms as used in Hansen's *Econometrics* and *Probability and Statistics for Eco
 
 **Robust standard errors** — Heteroskedasticity-consistent (HC) errors.
 
+**Response probability** — `P(x) = P[Y=1|X=x]` in a binary-choice model. Its derivative is the marginal effect.
+
 **Sandwich variance** — `A⁻¹BA⁻¹`. The general form of the variance of an M-estimator.
 
 **Sample selection** — Outcome observed only for a non-random subsample. Corrected by Heckman-type models, which need an exclusion restriction.
 
 **Saturated model** — Full dummies and interactions. Exactly equals the CEF, so no functional-form assumption.
 
+**Series model (linear / index)** — Approximating a response probability or regression function by a linear combination of basis functions, optionally through a link. The **probit series model** is Hansen's recommended binary-choice specification.
+
 **Serial correlation** — Autocorrelation of errors over time.
 
 **Slutsky's theorem** — Lets you combine convergence in probability with convergence in distribution.
+
+**Silverman's rule** — Reference bandwidth `h = 0.9σ̃n^{-1/5}` for kernel density estimation.
+
+**Sheather-Jones bandwidth** — Plug-in density bandwidth that estimates the unknown roughness nonparametrically. Hansen's preferred rule.
 
 **Sparsity** — Assumption that only a few coefficients are non-zero. What makes lasso theory work.
 
@@ -206,9 +246,13 @@ Terms as used in Hansen's *Econometrics* and *Probability and Statistics for Eco
 
 **Test inversion** — Building a confidence interval as the set of values a test does not reject. Better than the delta method for nonlinear parameters.
 
+**Tobit** — Censored regression by MLE under normality. Inconsistent if normality or error independence fails; CLAD is the robust alternative.
+
 **Two-way fixed effects (TWFE)** — Unit and time fixed effects. The standard DiD regression; problematic under staggered adoption with heterogeneous effects.
 
 **Unit root** — Non-stationary process with permanent shocks; `Yₜ = Yₜ₋₁ + eₜ`.
+
+**Wold decomposition** — Any covariance-stationary process equals a deterministic component plus an infinite MA in white noise projection errors. The justification for linear time-series models as approximations.
 
 **Wald test** — `W = (θ̂ - θ₀)'V̂⁻¹(θ̂ - θ₀) →d χ²_q`. Generalizes the t-test to multiple restrictions.
 
@@ -221,3 +265,4 @@ Terms as used in Hansen's *Econometrics* and *Probability and Statistics for Eco
 Related:
 
 - [[00 - Econometrics Hub]]
+- [[98 - Formula Cheatsheet]]

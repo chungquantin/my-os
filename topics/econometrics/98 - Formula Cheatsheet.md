@@ -285,11 +285,16 @@ Equal clusters of size `N`, within-cluster correlation `ρ`, cluster-level regre
 ### HAC (time series)
 
 ```
-Ω = Σ_{k=-∞}^{∞} E[Xₜeₜ Xₜ₋ₖ'eₜ₋ₖ]              long-run variance
-Ω̂ = Γ̂₀ + Σ_{k=1}^{M} w(k)(Γ̂ₖ + Γ̂ₖ')            Newey-West
-w(k) = 1 - k/(M+1)                               Bartlett kernel
-M ≈ 4(T/100)^{2/9}                               crude default bandwidth
+uₜ = Xₜeₜ,   Γ(ℓ) = E[uₜ₋ℓuₜ']
+Ω = Σ_{ℓ=-∞}^{∞} Γ(ℓ)                            long-run variance
+Ω̂_M = Σ_{ℓ=-M}^{M} Γ̂(ℓ)                          truncated — may be NEGATIVE definite
+Ω̂_nw = Σ_{ℓ=-M}^{M} (1 - |ℓ|/(M+1)) Γ̂(ℓ)         Newey-West (Bartlett) — always psd
+M = (6ρ²/(1-ρ²)²)^{1/3} n^{1/3}                  Andrews' optimal rule
+M = 1.4 n^{1/3}                                  benchmark at ρ = 0.5
+consistency needs M → ∞ with M³/n = O(1)
 ```
+
+Only needed when the model is **misspecified**. A correctly specified AR(p) with MDS errors takes ordinary robust standard errors.
 
 ---
 
@@ -699,14 +704,56 @@ See [[15 - Time Series]].
 
 ```
 γ(k) = cov(Yₜ, Yₜ₋ₖ),   ρ(k) = γ(k)/γ(0)         autocovariance, ACF
-Yₜ = α + φ₁Yₜ₋₁ + ... + φₚYₜ₋ₚ + eₜ               AR(p)
-Yₜ = eₜ + θ₁eₜ₋₁ + ... + θ_q eₜ₋q                 MA(q)
-half-life = log(0.5)/log(φ)                       AR(1) shock persistence
+var[Ȳ] = σ²/n + (2/n)Σ_{ℓ=1}^{n}(1 - ℓ/n)γ(ℓ)    variance of the sample mean
+```
+
+Shock hierarchy — `i.i.d. ⊂ MDS ⊂ white noise`:
+
+```
+MDS:          E[eₜ | ℱₜ₋₁] = 0                   unforecastable in mean
+white noise:  E[eₜ]=0, E[eₜ²]=σ², cov(eₜ,eₜ₋ₖ)=0  serially uncorrelated
+MDS CLT:      n^{-1/2}Σuₜ →d N(0,Σ)              stationary ergodic MDS, 2 moments
+mixing CLT:   n^{-1/2}Σuₜ →d N(0,Ω)              r > 2 moments + Σα(ℓ)^{1-2/r} < ∞
+```
+
+Growth rates:
+
+```
+Qₜ = 100(Yₜ/Yₜ₋₁ - 1) ≈ 100 Δlog Yₜ              one-period (recommended)
+Aₜ = 100((Yₜ/Yₜ₋₁)^s - 1)                        annualized (avoid for analysis)
+```
+
+Models:
+
+```
+Yₜ = μ + Σ_{j≥0} bⱼeₜ₋ⱼ,  b₀=1, Σbⱼ²<∞           Wold decomposition
+Yₜ = α₀ + α₁Yₜ₋₁ + ... + α_pYₜ₋ₚ + eₜ            AR(p);  α(L)Yₜ = α₀ + eₜ
+α(z) = 1 - α₁z - ... - α_p z^p                    autoregressive polynomial
+Yₜ = μ + eₜ + θ₁eₜ₋₁ + ... + θ_q eₜ₋q            MA(q)
+half-life = log(0.5)/log(α₁)                      AR(1) shock persistence
+bⱼ = α₁bⱼ₋₁ + ... + α_p bⱼ₋ₚ,  b₀ = 1            impulse response recursion
+IRFⱼ = σbⱼ                                        one-sd-shock scaling
 Yₜ = A₁Yₜ₋₁ + ... + AₚYₜ₋ₚ + eₜ                   VAR
 ΔYₜ = α(Yₜ₋₁ - βXₜ₋₁) + short-run terms + eₜ      error correction model
 ```
 
-Stationarity: AR(1) needs `|φ| < 1`; AR(p) needs all roots outside the unit circle.
+MA(1) moments: `var = (1+θ²)σ²`, `ρ(1) = θ/(1+θ²)`, `ρ(k) = 0` for `k ≥ 2`.
+AR(1) moments: `E[Y] = α₀/(1-α₁)`, `var = σ²/(1-α₁²)`, `ρ(k) = α₁^k`.
+
+**Stationarity**: all roots of `α(z)` outside the unit circle.
+- AR(1): `|α₁| < 1`
+- AR(2): `α₁ + α₂ < 1`, `α₂ - α₁ < 1`, `α₂ > -1` (a triangle); complex roots below `α₁² + 4α₂ = 0` give damped oscillations.
+
+**Identification**: AR coefficients are identified; MA and ARMA generally are **not** — `θ` and `1/θ` give identical `ρ(1)`, and ARMA has cancelling roots. Restrict to invertible roots.
+
+Estimation and inference:
+
+```
+α̂ = (ΣXₜXₜ')⁻¹(ΣXₜYₜ)                            OLS; consistent under stationarity + ergodicity
+√n(α̂-α) →d N(0, Q⁻¹ΣQ⁻¹),  Σ = E[XₜXₜ'eₜ²]      MDS errors ⟹ ordinary robust SEs are valid
+√n(α̂₁-α₁) →d N(0, 1-α₁²)                         AR(1), no intercept, homoskedastic
+AIC(p) = n log σ̂²(p) + 2p                        keep the sample fixed across p
+```
 
 ### Unit root
 
@@ -751,11 +798,28 @@ Q_τ(Y|X) = X'β(τ)
 
 ```
 D = 1{X ≥ c}
-τ = lim_{x↓c} E[Y|X=x] - lim_{x↑c} E[Y|X=x]       sharp RDD
-τ_fuzzy = [ jump in Y ] / [ jump in P(D=1) ]      = IV with 1{X ≥ c} as instrument
+θ̄ = m(c+) - m(c-)                                sharp RDD (needs m₀, m₁ continuous at c)
+θ̄ = (m(c+) - m(c-)) / (p(c+) - p(c-))            fuzzy RDD (also needs D ⊥ θ near c)
+θ̂ = [β̂₁(c)]₁ - [β̂₀(c)]₁                          local linear on each side
+Y = β₀ + β₁X + β₃(X-c)D + θD + e   on |X-c| ≤ h  simple estimator (rectangular kernel)
 ```
 
-Estimate with local linear on each side, triangular kernel, MSE-optimal bandwidth, bias-corrected robust CI (`rdrobust`). Never global high-order polynomials.
+Bias and variance:
+
+```
+bias[θ̂] = (h²σ²_{K*}/2)(m''(c+) - m''(c-))       zero to first order with a common bandwidth
+var[θ̂]  = (R*_K/nh)(σ²(c+)/f(c+) + σ²(c-)/f(c-))
+```
+
+Fan-Gijbels rule-of-thumb bandwidth:
+
+```
+h_rot = 0.58 (σ̂²(ξ₂-ξ₁)/B̂)^{1/5} n^{-1/5},   B̂ = (1/n)Σ(m̂''(Xᵢ)/2)²1{ξ₁≤Xᵢ≤ξ₂}
+```
+
+Constant is 0.58 for a normalized kernel, 1.00 for unnormalized Rectangular, 1.42 for unnormalized Triangular. Compute for several polynomial orders `q`, cross-check with CV, then **reduce ~25%** to undersmooth.
+
+Triangular kernel is efficient at the boundary; Rectangular costs ~3% root AMSE. Never global high-order polynomials. Plot the nonparametric estimate with confidence bands, **not binned means**.
 
 ---
 
@@ -764,17 +828,22 @@ Estimate with local linear on each side, triangular kernel, MSE-optimal bandwidt
 See [[17 - Limited Dependent Variables]].
 
 ```
-E[Y|X] = P(Y=1|X)                                 binary outcome
-P(Y=1|X) = G(X'β)
-  probit:  G = Φ
-  logit:   G = Λ(u) = e^u/(1+e^u)
+P(x) = P[Y=1|X=x] = E[Y|X=x]                      response probability
+var[e|X] = P(X)(1-P(X))                           inherently heteroskedastic
+P(x) = G(x'β)                                     index model
+  probit:  G = Φ,           σ = 1
+  logit:   G = Λ(u) = (1+e^{-u})⁻¹,  σ = π/√3 ≈ 1.8
 Y* = X'β + e,  Y = 1{Y* > 0}                      latent variable form
-∂P/∂Xⱼ = g(X'β)·βⱼ                                marginal effect ≠ coefficient
-AME = (1/n) Σ g(Xᵢ'β̂) β̂ⱼ                          average marginal effect
+ℓₙ(β) = Σ log G(Zᵢ'β),  Z = X if Y=1 else -X      log-likelihood, globally concave
+δ(x) = ∂P/∂x = β g(x'β)                           marginal effect ≠ coefficient
+AME = β̂ (1/n) Σ g(Xᵢ'β̂)                           average marginal effect
 odds ratio = exp(βⱼ)                              logit only
-β_logit ≈ 1.6-1.8 × β_probit
-var[Y|X] = p(1-p)                                 LPM is inherently heteroskedastic
+β* = β/σ                                          only the SCALED coefficient is identified
 ```
+
+To compare: **multiply probit coefficients by 1.8, or divide logit by 1.8.** Identified quantities: scaled coefficients, ratios of coefficients, marginal effects. Coefficients are **not** comparable across specifications — the scale changes.
+
+Hansen's preferred specification is the **probit series model** `P(x) = Φ(x_K'β_K)`: flexible *and* boundary-respecting. The LPM violates `[0,1]` in practice (an 80-year-old married with probability 113%); the linear series model can too (-27%). Choice of link barely matters; **specification of the index matters a lot**.
 
 ### Count data
 
@@ -785,16 +854,39 @@ effect multiplier = exp(βⱼ)
 
 Poisson QMLE + robust SEs is consistent whenever the conditional mean is right — no distributional assumption, handles zeros, works with fixed effects (no incidental-parameters problem).
 
+### Censoring
+
+```
+Y* = X'β + e,  e|X ~ N(0,σ²),  Y = max(Y*, 0)     Tobit
+m*(x) = X'β                                        uncensored mean
+m(x)  = X'β Φ(X'β/σ) + σ φ(X'β/σ)                  censored mean
+m#(x) = X'β + σ λ(X'β/σ)                           truncated mean
+m*(x) ≤ m(x) ≤ m#(x)                               deleting zeros is WORSE than keeping them
+β_BLP = β(1 - π),   π = P[Y=0]                     Greene's rule: OLS slope bias ≈ censoring %
+```
+
+Robust alternatives (Powell), using quantile equivariance `Q_τ[Y|X] = max(q_τ(X), 0)`:
+
+```
+CLAD: M̂ₙ(β) = (1/n)Σ |Yᵢ - max(Xᵢ'β, 0)|
+CQR:  M̂ₙ(β;τ) = (1/n)Σ ρ_τ(Yᵢ - max(Xᵢ'β, 0))
+```
+
+No normality, no error independence needed. Not globally convex — watch for local minima. Hansen's preferred estimator under censoring.
+
 ### Sample selection
 
 ```
 Y = X'β + e            observed only when S = 1
 S = 1{Z'γ + u > 0}
-λ̂ᵢ = φ(Zᵢ'γ̂)/Φ(Zᵢ'γ̂)                             inverse Mills ratio
-Y = X'β + σ_eu λ̂ + v                              Heckman second step
+E[Y | X, S=1] = X'β + ρ λ(X'γ)                    selection bias IS omitted variable bias
+λ(u) = φ(u)/Φ(u)                                  inverse Mills ratio
+E[Y | X, Z, S=1] = X'β + σ₂₁ λ(Z'γ)               Heckman's model
 ```
 
-Needs an exclusion restriction: a variable in `Z` not in `X`.
+Bias arises **iff `ρ ≠ 0`**. If `X'γ` is constant, selection shifts only the intercept and marginal effects are unaffected. Unlike censoring (which always attenuates), selection can steepen *or* flatten.
+
+Two-step: probit `S` on `Z` → `γ̂`; form `λ̂ᵢ = λ(Zᵢ'γ̂)`; OLS `Y` on `(X, λ̂)` on the selected sub-sample. `λ̂` is a generated regressor — correct the standard errors. The t-statistic on `σ̂₂₁` tests exogenous selection. Needs an exclusion restriction: a variable in `Z` not in `X`.
 
 ---
 
@@ -854,6 +946,207 @@ Rate conditions: `(‖β‖₀ + ‖γ‖₀) log p / √n = o(1)`; Lasso IV nee
 
 ---
 
+---
+
+## 17. Systems, PCA, factor models
+
+See [[20 - Multivariate Regression and Factor Models]].
+
+```
+Y = X̄'β + e,  E[ee'|X] = Σ                       multivariate regression
+β̂_sur = (Σᵢ X̄ᵢ'Σ̂⁻¹X̄ᵢ)⁻¹ (Σᵢ X̄ᵢ'Σ̂⁻¹Yᵢ)           SUR (feasible GLS)
+β̂_sur = β̂_ols   when regressors common, or Σ diagonal
+V*_β = (E[X̄'Σ⁻¹X̄])⁻¹ ≤ V_β                        SUR efficiency gain
+```
+
+Reduced rank: `B = GA'` with rank `r`; `Ĝ` = generalized eigenvectors of `X̃'Ỹ(Ỹ'Ỹ)⁻¹Y'X̃` w.r.t. `X̃'X̃`, largest `r`. Maximized `ℓₙ` includes `-(n/2)Σⱼlog(1 - λ̂ⱼ)` — the Johansen statistic.
+
+```
+h_j = argmax_{h'h=1, h⊥h₁..h_{j-1}} var[h'X]      j-th principal component
+Σ = HDH',  U = H'X,  var[U] = D                   PCA = eigendecomposition
+share_j = d_j / tr(Σ)
+```
+
+Factor models:
+
+```
+X = ΛF + u,  E[FF'] = I_r,  Ψ = E[uu']
+Σ = ΛΛ' + Ψ                                       communality + uniqueness
+ℓₙ(Λ,Ψ) = -(nk/2)log2π - (n/2)logdet(ΛΛ'+Ψ) - (n/2)tr((ΛΛ'+Ψ)⁻¹Σ̂)
+F̃ᵢ = (Λ̂'Ψ̂⁻¹Λ̂)⁻¹Λ̂'Ψ̂⁻¹Xᵢ                           Bartlett scoring
+F̄ᵢ = Λ̂'Σ̂⁻¹Xᵢ                                     regression scoring (preferred)
+```
+
+Approximate factor model (principal-components estimator), `D̂`/`Ĥ` = first `r` eigenvalues/vectors of `Σ̂`:
+
+```
+Λ̂ = Ĥ D̂^{1/2},   F̂ᵢ = D̂^{-1/2} Ĥ' Xᵢ
+```
+
+Inconsistent for fixed `k`; consistent as `k → ∞`.
+
+Factor-augmented regression `Y = F'β + Z'γ + e`, `X = ΛF + u`:
+
+```
+β̂ →p β* = (I_r + D⁻¹Λ'ΨΛD⁻¹)⁻¹ β                  inconsistent for fixed k
+β* → β as k → ∞;  normality needs k²/n → ∞
+```
+
+---
+
+## 18. Shrinkage and model averaging
+
+See [[21 - Shrinkage and Model Averaging]].
+
+### MSE of selection
+
+```
+θ̂_pms = θ̂·1{θ̂'θ̂ > c},   c = 2K (AIC), K log n (BIC), χ²_K(.95) (5% test)
+mse[θ̂_pms] = K + (2λ - K)F_{K+2}(c,λ) - λF_{K+4}(c,λ),   λ = θ'θ
+```
+
+Lower MSE than `θ̂` for `λ < K`, higher for `λ > K`. BIC's MSE → ∞ as `n → ∞`.
+
+### Shrinkage
+
+```
+θ̃ = (1-w)θ̂
+bias = -wθ,  var = (1-w)²V,  wmse = K(1-w)² + w²λ,   λ = θ'V⁻¹θ
+wmse[θ̃] < wmse[θ̂]  for 0 < w < 2K/(K+λ)
+w₀ = K/(K+λ),   min wmse = Kλ/(K+λ)
+θ̃ = (1 - c/(θ̂'V⁻¹θ̂))θ̂                             Stein rule (θ̂'V⁻¹θ̂ = Wald stat)
+θ̃_JS = (1 - (K-2)/(θ̂'V̂⁻¹θ̂))θ̂                     James-Stein; dominates MLE for K > 2
+θ̃⁺ = (1 - (K-2)/(θ̂'V̂⁻¹θ̂))₊ θ̂                     positive part; uniformly better
+```
+
+Toward restrictions `R'θ = r` with `q > 2`:
+
+```
+θ̂_R = θ̂ - V̂R(R'V̂R)⁻¹(R'θ̂ - r)
+θ̃⁺ = θ̂ - ((q-2)/J)₁ (θ̂ - θ̂_R),   J = (θ̂-θ̂_R)'V̂⁻¹(θ̂-θ̂_R)
+J = n(σ̂²_R - σ̂²)/s²                               convenient regression form
+```
+
+Group version: `θ̃_g = θ̂_g(1 - (K_g-2)/(θ̂_g'V̂_g⁻¹θ̂_g))₊`, needs every `K_g > 2`.
+
+### Model averaging
+
+```
+θ̂(w) = Σ_m w_m θ̂_m,   w ∈ S (simplex: w_m ≥ 0, Σw_m = 1)
+w_m = exp(-ΔBIC_m/2)/Σⱼexp(-ΔBICⱼ/2)               smoothed BIC weights
+w_m = exp(-ΔAIC_m/2)/Σⱼexp(-ΔAICⱼ/2)               smoothed AIC weights
+```
+
+Use `Δ` (differences from the minimum), never levels — avoids overflow.
+
+```
+C(w) = ê(w)'ê(w) + 2σ̄²Σ_m w_m K_m = w'Ê'Êw + 2σ̄²K'w      Mallows (MMA)
+CV(w) = w'Ẽ'Ẽw                                            jackknife (JMA / stacking)
+ŵ = argmin_{w ∈ S} (·)                                    quadratic programming
+```
+
+For `M = 2` nested models, `ŵ_mma = (σ̄²(K₂-K₁)/(ê₁'ê₁ - ê₂'ê₂))₁` — a Stein-rule weight. MMA generalizes James-Stein to `M > 2`.
+
+### Trees and forests
+
+See [[18 - Model Selection and Machine Learning]].
+
+```
+Y = μ₁1{X_d ≤ γ} + μ₂1{X_d > γ} + e                regression sample split (NLLS over d, γ)
+C = Σêᵢ² + αN                                      pruning criterion, N = leaves
+m̂_bag(x) = (1/B)Σ_b m̂*_b(x)                        bagging
+ẽᵢ = Yᵢ - m̂₋ᵢ(Xᵢ)                                  out-of-bag error (~37% left out)
+V̂ₙ(x) = Σᵢ((1/B)Σ_b(N_ib - Nᵢ)(m̂*_b(x) - m̂_bag(x)))²   infinitesimal jackknife
+(m̂_rf(x) - m(x))/√V̂ₙ(x) →d N(0,1)                  Wager-Athey, honest + subsampled
+```
+
+Random forest defaults: `N_min = 5`, `m = p/3` variables sampled per split, `0 < α ≤ 0.2`.
+
+---
+
+## 19. Bayesian methods
+
+See [[22 - Bayesian Methods]].
+
+```
+f(x,θ) = f(x|θ)π(θ)                                joint
+m(x) = ∫ Lₙ(x|θ)π(θ)dθ                             marginal likelihood
+π(θ|X) = Lₙ(X|θ)π(θ)/m(X)                          posterior ∝ likelihood × prior
+θ̂_Bayes = ∫θ π(θ|X)dθ                              posterior mean (quadratic loss)
+θ̄_Bayes = median(θ|X)                              posterior median (absolute loss)
+R(T|X) = ∫ℓ(T,θ)π(θ|X)dθ                           Bayes risk
+```
+
+Conjugate products:
+
+```
+beta(α₁,β₁)×beta(α₂,β₂) ∝ beta(α₁+α₂, β₁+β₂)
+gamma(α₁,β₁)×gamma(α₂,β₂) ∝ gamma(α₁+α₂-1, β₁+β₂)
+N(μ₁,1/ν₁)×N(μ₂,1/ν₂) ∝ N((ν₁μ₁+ν₂μ₂)/(ν₁+ν₂), 1/(ν₁+ν₂))
+```
+
+Standard posteriors (precision `ν = 1/σ²`):
+
+```
+Bernoulli + beta(α,β):    π(p|X) = beta(Sₙ+α, n-Sₙ+β),  p̂ = (Sₙ+α)/(n+α+β)
+Normal mean, ν known:     μ̂ = (nνX̄ₙ + ν̄μ̄)/(nν + ν̄)
+Normal precision:         σ̂²_Bayes = (nσ̃²_mle + 2ασ̄²)/(n + 2α)
+Both unknown (NormalGamma): μ̂ = (nX̄ₙ + λμ̄)/(n+λ),  σ̂² = ((n-1)s² + 2ασ̄²)/(n-1+2α)
+```
+
+`λ` and `2α` are the prior's worth in pseudo-observations.
+
+Credible sets and tests:
+
+```
+P[θ ∈ C | X] = ∫_C π(θ|X)dθ = 1-η                  credible interval
+HPD: π(θ₁|X) ≥ π(θ₂|X) for all θ₁∈C, θ₂∉C          shortest such interval
+πⱼ(X) = πⱼmⱼ(X)/Σᵢπᵢmᵢ(X)                          posterior model probability
+Bayes Factor = m₂(X)/m₁(X);  select H₂ if prior odds × BF > 1
+```
+
+Frequentist properties in the normal model:
+
+```
+E[μ̂_Bayes] = (nμ + λμ̄)/(n+λ)
+bias = λ(μ̄-μ)/(n+λ),   var = σ²/(n+λ)
+```
+
+Lower variance than `X̄ₙ`, biased unless the prior is centered on the truth.
+
+---
+
+## 20. Density estimation
+
+See [[23 - Nonparametric Density Estimation]].
+
+```
+f̂(x) = nⱼ/(nw)                                    histogram, bin width w
+f̂(x) = (1/nh) Σᵢ K((Xᵢ - x)/h)                     kernel density estimator
+R_K = ∫K(u)²du                                     kernel roughness
+R(f'') = ∫(f''(x))²dx                              density curvature roughness
+```
+
+Bias, variance, and the trade-off:
+
+```
+E[f̂(x)] = f(x) + (1/2)f''(x)h² + o(h²)             bias ∝ curvature
+V_f̂ = f(x)R_K/(nh) + o(1/(nh))                     nh = effective sample size
+AIMSE = (1/4)R(f'')h⁴ + R_K/(nh)
+h₀ = (R_K/R(f''))^{1/5} n^{-1/5},   AIMSE ~ n^{-4/5},  rate n^{-2/5}
+```
+
+Bandwidth rules:
+
+```
+h_r = σ C_K n^{-1/5},   C_K = (8√π R_K/3)^{1/5}    reference (Silverman)
+h_r = 1.06 s n^{-1/5}                              Gaussian optimal
+h_r = 0.9 σ̃ n^{-1/5}                               Silverman rule of thumb
+h = 0.776 / Ŝ₂(b̄₂(h))^{1/5} · n^{-1/5}             Sheather-Jones (Gaussian), solve numerically
+```
+
+`C_K` ranges only 1.049-1.064 across kernels, so **1.06 works for any unit-variance kernel**. Epanechnikov minimizes AIMSE; the Gaussian loses only **2%**. Bandwidth matters, kernel choice barely does.
+
 ## Quick reference card
 
 | Situation | Formula / rule |
@@ -874,9 +1167,26 @@ Rate conditions: `(‖β‖₀ + ‖γ‖₀) log p / √n = o(1)`; Lasso IV nee
 | Multiple tests | Bonferroni: reject if `p < α/k` |
 | Probit/logit | report marginal effects, not coefficients |
 | Non-negative outcome | Poisson QMLE + robust SEs |
+| Correctly specified AR(p) | ordinary robust SEs — HAC not needed |
+| HAC bandwidth | `M = 1.4 n^{1/3}` as a benchmark |
+| Censored outcome | check `π`; OLS slope bias ≈ `π`; prefer CLAD over Tobit |
+| Never fix censoring by | dropping the zeros — truncation is worse |
+| Binary outcome, want probabilities | probit series model, not LPM |
+| Probit vs logit | irrelevant; the index specification is what matters |
+| RDD plotting | nonparametric estimate + bands, never binned means |
 | High-dim controls, want inference on θ | double selection / partialling-out / DML |
+| Shrinkage always helps | some `0 < w < 2K/(K+λ)` beats no shrinkage |
+| James-Stein needs | `K > 2`; always use the positive part |
+| Model averaging default | jackknife (JMA / stacking), no homoskedasticity needed |
+| Selecting a model | AIC or CV — not BIC |
+| Density estimation | kernel choice ~2%, bandwidth is everything |
+| Density bandwidth | Sheather-Jones; `n ≥ 100`, `≥ 50` distinct values |
+| SUR is worth running only if | equations have different regressors |
+| Factor loadings | never interpret individually — rotation is arbitrary |
 
 Related:
 
 - [[00 - Econometrics Hub]]
+- [[21 - Shrinkage and Model Averaging]]
+- [[22 - Bayesian Methods]]
 - [[99 - Econometrics Glossary]]

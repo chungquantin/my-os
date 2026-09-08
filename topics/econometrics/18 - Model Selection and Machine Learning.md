@@ -56,9 +56,15 @@ The `L1` penalty produces **exact zeros**, so it does variable selection and est
 
 Under a **sparsity** assumption (only `s` coefficients are non-zero, `s` small relative to `n`), the lasso is consistent and achieves near-oracle rates, with the theory requiring roughly `s·log(p)/√n → 0`. Note `p` can grow *exponentially* in `n` — that is the remarkable part.
 
-**Elastic net** mixes `L1` and `L2`; better than lasso when predictors are highly correlated in groups.
+**Elastic net** mixes both penalties:
+```
+SSE(β,λ,α) = (Y - Xβ)'(Y - Xβ) + λ( α‖β‖₂² + (1-α)‖β‖₁ )
+```
+with `α = 0` giving lasso and `α = 1` ridge. `(α, λ)` are chosen jointly by K-fold cross-validation. Better than lasso when predictors are correlated in groups. R: `glmnet`. Stata: `elasticnet` or `lassopack`.
 
-**Post-lasso**: run lasso to select variables, then run plain OLS on the selected set. Removes the shrinkage bias in the retained coefficients. This is the standard practice inside the inference procedures below.
+**Post-lasso**: run lasso to select variables, then run plain OLS on the selected set. Removes the shrinkage bias in the retained coefficients, and Belloni and Chernozhukov (2013) give conditions under which it has the same convergence rate as lasso. This is standard practice inside the inference procedures below.
+
+But note what post-lasso *is*: a hard-thresholding, post-model-selection estimator. When the regressors are orthogonal it is exactly a selection estimator. So it inherits the PMS pathologies — high variance and non-standard distributions — described in [[21 - Shrinkage and Model Averaging]]. That is precisely why the inference procedures below are needed rather than a naive t-test on the post-lasso output.
 
 **Always standardize** regressors before penalizing — otherwise the penalty depends on units — and never penalize the intercept.
 
@@ -138,6 +144,83 @@ For high-dimensional instruments, lasso the first stage to select instruments, t
 
 Stata: `ivlasso`.
 
+## Regression trees
+
+Breiman, Friedman, Olshen and Stone (1984), known as **CART** (Classification And Regression Trees). A regression tree is nonparametric regression by step function: with enough split points, a step function approximates any function. Useful when regressors mix continuous and discrete variables, where kernel and series methods are awkward.
+
+Think of a tree as a zeroth-order spline with free knots, or as threshold regression with intercepts only and many thresholds.
+
+Vocabulary: a subsample is a **branch**; terminal branches are **nodes** or **leaves**; adding branches is **growing**; removing them is **pruning**.
+
+**The split.** The engine is the regression sample split, a simplified threshold regression estimated by nonlinear least squares over the index `d` and threshold `γ` by grid search:
+```
+Y = μ₁·1{X_d ≤ γ} + μ₂·1{X_d > γ} + e
+```
+
+**Growing:**
+
+1. Pick a minimum node size `N_min` (default 5).
+2. Repeatedly: apply the split algorithm to each branch (each side keeping at least `N_min`); on each sub-branch the fitted value is the sample mean `μ̂_b` and the residuals are `Yᵢ - μ̂_b`; select the branch whose split most reduces the sum of squared errors; split it and no other; repeat until no branch can be split further.
+
+**Pruning** — backward stepwise on the leaves, using a Mallows-type criterion
+```
+C = Σᵢ êᵢ² + αN        N = number of leaves
+```
+Remove the leaf whose removal most decreases `C`; stop when no removal helps. `α` is chosen by K-fold cross-validation. Hansen notes the Mallows-type criterion is used for simplicity and "does not have a theoretical foundation for regression tree penalty selection".
+
+**Weaknesses.** No coefficients, so results are hard to interpret. The fit is a step function, a crude approximation to a smooth `m(x)` — getting a good approximation needs many leaves, which means high variance. And the sampling distribution is hard to derive because the split locations and the within-leaf means are strongly correlated — the same problem as post-model-selection.
+
+**Honest trees** (Wager and Athey 2018) break that dependence: split the sample into halves `A` and `B`, use `A` to place the splits and `B` to estimate within-leaf means. This halves the effective sample but removes the distortion.
+
+R: `rpart`.
+
+## Bagging
+
+**B**ootstrap **agg**regat**ing** (Breiman 1996). Draw `B` bootstrap samples, estimate the model on each, and average:
+```
+m̂_bag(x) = (1/B) Σ_b m̂*_b(x)
+```
+
+Why it works: bagging turns a **hard threshold** into a **soft** one. For the selection estimator `θ̂_pms = θ̂·1{θ̂² ≥ c}`, the bagged version is `E*[h(θ̂*)] = g(θ̂)` where `g` is a smooth, everywhere-differentiable version of the discontinuous `h`. Smooth transformations have lower variance than hard thresholds (Bühlmann and Yu 2002), and Hansen's numerical comparison shows the bagged estimator's MSE is substantially below the selection estimator's over most of the parameter space — with the biggest gains exactly where the selection estimator is worst.
+
+So bagging helps for **low-bias, high-variance** estimators — regression trees, model selection, post-lasso. It is *not* expected to help for high-bias estimators, where averaging may amplify the bias.
+
+**Out-of-bag error.** A bootstrap sample contains about 63% of the original observations, so about 37% are left out. For observation `i`, average only over the ~0.37B bootstrap trees that exclude it, giving `m̂₋ᵢ(Xᵢ)`; then `ẽᵢ = Yᵢ - m̂₋ᵢ(Xᵢ)` and the **out-of-bag CV criterion** is `Σẽᵢ²`. A free cross-validation estimate of out-of-sample MSFE — no extra fitting needed.
+
+**Variance.** The **infinitesimal jackknife** (Wager, Hastie and Efron 2014):
+```
+V̂ₙ(x) = Σᵢ ( (1/B) Σ_b (N_ib - Nᵢ)(m̂*_b(x) - m̂_bag(x)) )²
+```
+where `N_ib` counts appearances of observation `i` in bootstrap sample `b`.
+
+## Random forests
+
+Breiman (2001). Bagged trees are highly correlated with one another — they tend to split on the same variables — so averaging them does not reduce variance as much as it should. Random forests **decorrelate** the trees by restricting each split to a random subset of regressors.
+
+Algorithm (defaults from Hastie, Tibshirani and Friedman):
+
+1. Pick minimum leaf size `N_min` (default 5), minimal split fraction `α ∈ [0,1)`, and sampling number `m < p` (default `p/3`).
+2. For `b = 1,...,B`: draw a bootstrap sample; grow a tree where at each split you **select `m` variables at random from the `p` regressors** and split on the best of those (each side keeping at least `N_min` observations and a fraction `α` of the branch); stop when each leaf has between `N_min` and `2N_min - 1` observations; the fitted value on each leaf is the sample mean.
+3. `m̂_rf(x) = (1/B) Σ_b m̂_b(x)`.
+
+**Inference.** Wager and Athey (2018) establish pointwise consistency and asymptotic normality:
+```
+(m̂_rf(x) - m(x)) / √V̂ₙ(x)  →d  N(0,1)
+```
+under assumptions that the conditional mean and variance are Lipschitz, `X ~ U[0,1]^p` with `p` fixed, the forest is built by **subsampling** (not the full bootstrap) with **honest trees**, and `0 < α ≤ 0.2`. Note the limit has **no bias term** — the estimator is undersmoothed by construction. The variance can be estimated by the infinitesimal jackknife above.
+
+The theory is remarkably weak on rates: it does not tell you how fast the estimator converges. The mechanism is that the splitting rules divide the regressor space into `N ~ n^γ` leaves, so the estimator is asymptotically unbiased at a power rate, and `α > 0` ensures observations per leaf grow with `n`.
+
+R: `randomForest`.
+
+## Ensembling
+
+Model averaging across machine learning algorithms — CV selection, James-Stein, JMA, SBIC, PCA, kernel regression, series regression, ridge, lasso, regression trees, bagged trees, random forests. Rather than picking the method that happens to work best on your data, average them.
+
+The popular method, **stacking**, is exactly Jackknife Model Averaging: choose non-negative weights summing to one by minimizing a cross-validation criterion. See [[21 - Shrinkage and Model Averaging]].
+
+Hansen's caveat is worth repeating: "the theoretical literature concerning ensembling is thin. Much of the advice concerning specific methods is based on empirical performance."
+
 ## Where prediction methods legitimately belong in econometrics
 
 - **Estimating nuisance functions** for the procedures above.
@@ -165,3 +248,5 @@ Related:
 - [[11 - Instrumental Variables]]
 - [[16 - Nonparametrics, Quantiles, and RDD]]
 - [[19 - Applied Workflow and Common Mistakes]]
+- [[20 - Multivariate Regression and Factor Models]]
+- [[21 - Shrinkage and Model Averaging]]

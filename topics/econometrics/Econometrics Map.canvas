@@ -1,0 +1,491 @@
+{
+  "nodes": [
+    {
+      "id": "37f93a070955b889",
+      "type": "text",
+      "x": 0,
+      "y": -230,
+      "width": 1020,
+      "height": 190,
+      "color": "4",
+      "text": "# Econometrics\n\nOne loop, repeated everywhere:\n\n**define a population quantity \u2192 build a sample analog \u2192 work out how far off it is \u2192 ask whether it answers your question.**\n\nThe last step is identification. It is where causal claims live or die.\n\nStart at **01**, then **04**. Cross into causality at **10**."
+    },
+    {
+      "id": "941c242e841d08e3",
+      "type": "group",
+      "x": -24,
+      "y": -46,
+      "width": 348,
+      "height": 720,
+      "label": "Foundations",
+      "color": "4"
+    },
+    {
+      "id": "266f85e98862122f",
+      "type": "file",
+      "x": 0,
+      "y": 0,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/01 - What Econometrics Is.md",
+      "color": "4"
+    },
+    {
+      "id": "8f1c44728f404d45",
+      "type": "file",
+      "x": 0,
+      "y": 132,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/02 - Probability Foundations.md",
+      "color": "4"
+    },
+    {
+      "id": "eb637df3192614fa",
+      "type": "file",
+      "x": 0,
+      "y": 264,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/03 - Statistical Inference Foundations.md",
+      "color": "4"
+    },
+    {
+      "id": "79626ad971b80dd9",
+      "type": "file",
+      "x": 0,
+      "y": 396,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/04 - Conditional Expectation and Projection.md",
+      "color": "4"
+    },
+    {
+      "id": "9f108ba14277086b",
+      "type": "file",
+      "x": 0,
+      "y": 528,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/05 - Least Squares Mechanics.md",
+      "color": "4"
+    },
+    {
+      "id": "89c540ec3a47e3eb",
+      "type": "group",
+      "x": 336,
+      "y": -46,
+      "width": 348,
+      "height": 588,
+      "label": "Inference machinery",
+      "color": "5"
+    },
+    {
+      "id": "c878788b211bdaec",
+      "type": "file",
+      "x": 360,
+      "y": 0,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/06 - Standard Errors and Clustering.md",
+      "color": "5"
+    },
+    {
+      "id": "14b6f23fe2391f12",
+      "type": "file",
+      "x": 360,
+      "y": 132,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/07 - Asymptotic Theory.md",
+      "color": "5"
+    },
+    {
+      "id": "1e6f3df1530295a5",
+      "type": "file",
+      "x": 360,
+      "y": 264,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/08 - Hypothesis Testing and Confidence Intervals.md",
+      "color": "5"
+    },
+    {
+      "id": "2c3a6f7cbe03cc55",
+      "type": "file",
+      "x": 360,
+      "y": 396,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/09 - Bootstrap and Resampling.md",
+      "color": "5"
+    },
+    {
+      "id": "172ba0dc9f9da723",
+      "type": "group",
+      "x": 696,
+      "y": -46,
+      "width": 348,
+      "height": 984,
+      "label": "Causal inference",
+      "color": "1"
+    },
+    {
+      "id": "7f292f7f4ab189fa",
+      "type": "file",
+      "x": 720,
+      "y": 0,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/10 - Causality and Identification.md",
+      "color": "1"
+    },
+    {
+      "id": "0ecf96fedd9ad2d8",
+      "type": "file",
+      "x": 720,
+      "y": 132,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/11 - Instrumental Variables.md",
+      "color": "1"
+    },
+    {
+      "id": "a1a865605dbc86fa",
+      "type": "file",
+      "x": 720,
+      "y": 264,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/12 - GMM and Minimum Distance.md",
+      "color": "1"
+    },
+    {
+      "id": "97cf92f9ea65f77c",
+      "type": "file",
+      "x": 720,
+      "y": 396,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/13 - Panel Data.md",
+      "color": "1"
+    },
+    {
+      "id": "1171654f4fe34947",
+      "type": "file",
+      "x": 720,
+      "y": 528,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/14 - Difference in Differences.md",
+      "color": "1"
+    },
+    {
+      "id": "ab489a98f73a0884",
+      "type": "file",
+      "x": 720,
+      "y": 660,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/16 - Nonparametrics, Quantiles, and RDD.md",
+      "color": "1"
+    },
+    {
+      "id": "ae5c75d17700c99d",
+      "type": "file",
+      "x": 720,
+      "y": 792,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/17 - Limited Dependent Variables.md",
+      "color": "1"
+    },
+    {
+      "id": "0e7ac2fab5456d1c",
+      "type": "group",
+      "x": 1056,
+      "y": -46,
+      "width": 348,
+      "height": 852,
+      "label": "Prediction and modern methods",
+      "color": "6"
+    },
+    {
+      "id": "9b859be5feb966cd",
+      "type": "file",
+      "x": 1080,
+      "y": 0,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/15 - Time Series.md",
+      "color": "6"
+    },
+    {
+      "id": "f7466ba65291bf74",
+      "type": "file",
+      "x": 1080,
+      "y": 132,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/18 - Model Selection and Machine Learning.md",
+      "color": "6"
+    },
+    {
+      "id": "16b877e2a97d9598",
+      "type": "file",
+      "x": 1080,
+      "y": 264,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/20 - Multivariate Regression and Factor Models.md",
+      "color": "6"
+    },
+    {
+      "id": "37c3f87f2ae0e2c7",
+      "type": "file",
+      "x": 1080,
+      "y": 396,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/21 - Shrinkage and Model Averaging.md",
+      "color": "6"
+    },
+    {
+      "id": "9f6e414a176418f4",
+      "type": "file",
+      "x": 1080,
+      "y": 528,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/22 - Bayesian Methods.md",
+      "color": "6"
+    },
+    {
+      "id": "76585db1bd9bf258",
+      "type": "file",
+      "x": 1080,
+      "y": 660,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/23 - Nonparametric Density Estimation.md",
+      "color": "6"
+    },
+    {
+      "id": "d60f19a486eef1d6",
+      "type": "group",
+      "x": 1416,
+      "y": -46,
+      "width": 348,
+      "height": 588,
+      "label": "Practice and reference",
+      "color": "2"
+    },
+    {
+      "id": "6ae22948691d00e0",
+      "type": "file",
+      "x": 1440,
+      "y": 0,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/19 - Applied Workflow and Common Mistakes.md",
+      "color": "2"
+    },
+    {
+      "id": "1056b46e4cac155b",
+      "type": "file",
+      "x": 1440,
+      "y": 132,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/98 - Formula Cheatsheet.md",
+      "color": "2"
+    },
+    {
+      "id": "b67c54fd36f36338",
+      "type": "file",
+      "x": 1440,
+      "y": 264,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/99 - Econometrics Glossary.md",
+      "color": "2"
+    },
+    {
+      "id": "273b7ff8799a5e93",
+      "type": "file",
+      "x": 1440,
+      "y": 396,
+      "width": 300,
+      "height": 108,
+      "file": "topics/econometrics/00 - Econometrics Hub.md",
+      "color": "2"
+    }
+  ],
+  "edges": [
+    {
+      "id": "a8092f06ba83cbe4",
+      "fromNode": "266f85e98862122f",
+      "fromSide": "bottom",
+      "toNode": "8f1c44728f404d45",
+      "toSide": "top",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "5d0ca0ab92fda410",
+      "fromNode": "8f1c44728f404d45",
+      "fromSide": "bottom",
+      "toNode": "eb637df3192614fa",
+      "toSide": "top",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "255e0186b4ad5945",
+      "fromNode": "eb637df3192614fa",
+      "fromSide": "bottom",
+      "toNode": "79626ad971b80dd9",
+      "toSide": "top",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "4429f3af6b62331b",
+      "fromNode": "79626ad971b80dd9",
+      "fromSide": "bottom",
+      "toNode": "9f108ba14277086b",
+      "toSide": "top",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "3244fd18b5c7e3f4",
+      "fromNode": "9f108ba14277086b",
+      "fromSide": "right",
+      "toNode": "c878788b211bdaec",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "how noisy?"
+    },
+    {
+      "id": "586943947a73bbe1",
+      "fromNode": "c878788b211bdaec",
+      "fromSide": "bottom",
+      "toNode": "14b6f23fe2391f12",
+      "toSide": "top",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "56f533167274f7a4",
+      "fromNode": "14b6f23fe2391f12",
+      "fromSide": "bottom",
+      "toNode": "1e6f3df1530295a5",
+      "toSide": "top",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "ccde105154c59e8d",
+      "fromNode": "1e6f3df1530295a5",
+      "fromSide": "bottom",
+      "toNode": "2c3a6f7cbe03cc55",
+      "toSide": "top",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "48277f558c6b03a9",
+      "fromNode": "79626ad971b80dd9",
+      "fromSide": "right",
+      "toNode": "7f292f7f4ab189fa",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "is it causal?",
+      "color": "1"
+    },
+    {
+      "id": "915727e287320039",
+      "fromNode": "7f292f7f4ab189fa",
+      "fromSide": "bottom",
+      "toNode": "0ecf96fedd9ad2d8",
+      "toSide": "top",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "bdf083a187f81157",
+      "fromNode": "7f292f7f4ab189fa",
+      "fromSide": "bottom",
+      "toNode": "97cf92f9ea65f77c",
+      "toSide": "top",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "15663d9a1c822039",
+      "fromNode": "7f292f7f4ab189fa",
+      "fromSide": "bottom",
+      "toNode": "1171654f4fe34947",
+      "toSide": "top",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "d5fd03b6b1c19852",
+      "fromNode": "7f292f7f4ab189fa",
+      "fromSide": "bottom",
+      "toNode": "ab489a98f73a0884",
+      "toSide": "top",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "ada1f4f9bc66ad76",
+      "fromNode": "0ecf96fedd9ad2d8",
+      "fromSide": "bottom",
+      "toNode": "a1a865605dbc86fa",
+      "toSide": "top",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "f5808e37d94ae7df",
+      "fromNode": "9f108ba14277086b",
+      "fromSide": "right",
+      "toNode": "f7466ba65291bf74",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "many predictors",
+      "color": "6"
+    },
+    {
+      "id": "ef9d6027d9a795ed",
+      "fromNode": "f7466ba65291bf74",
+      "fromSide": "bottom",
+      "toNode": "37c3f87f2ae0e2c7",
+      "toSide": "top",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "974486c73b9d334f",
+      "fromNode": "37c3f87f2ae0e2c7",
+      "fromSide": "bottom",
+      "toNode": "9f6e414a176418f4",
+      "toSide": "top",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "87b7ec5bcf912651",
+      "fromNode": "ab489a98f73a0884",
+      "fromSide": "right",
+      "toNode": "76585db1bd9bf258",
+      "toSide": "left",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "55c3524202653f77",
+      "fromNode": "2c3a6f7cbe03cc55",
+      "fromSide": "right",
+      "toNode": "6ae22948691d00e0",
+      "toSide": "left",
+      "toEnd": "arrow"
+    },
+    {
+      "id": "6ce4783765d63002",
+      "fromNode": "1171654f4fe34947",
+      "fromSide": "right",
+      "toNode": "6ae22948691d00e0",
+      "toSide": "left",
+      "toEnd": "arrow"
+    }
+  ]
+}

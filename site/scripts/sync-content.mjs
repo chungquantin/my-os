@@ -70,6 +70,22 @@ for (const folder of vaultFolders) {
 copySelectedFiles(path.join(vaultDir, "CHANGELOG.md"), path.join(contentDir, "CHANGELOG.md"))
 copySelectedFiles(path.join(vaultDir, "projects"), path.join(contentDir, "projects"))
 
+// Standalone HTML prototypes cannot go through content/: Quartz slugifies asset paths
+// and deliberately strips the .html extension, which leaves an extensionless file that
+// GitHub Pages serves as a download. quartz/static is copied verbatim, so put them there.
+const staticPrototypeDir = path.join(siteDir, "quartz", "static", "prototypes")
+rmSync(staticPrototypeDir, { recursive: true, force: true })
+
+const prototypes = [["projects/vaultd/prototype", "vaultd"]]
+for (const [from, name] of prototypes) {
+  const src = path.join(vaultDir, from)
+  if (!existsSync(src)) continue
+  const dest = path.join(staticPrototypeDir, name)
+  mkdirSync(dest, { recursive: true })
+  cpSync(src, dest, { recursive: true })
+  console.log(`Synced prototype ${from} -> quartz/static/prototypes/${name}`)
+}
+
 writeFileSync(
   path.join(contentDir, "index.md"),
   `---

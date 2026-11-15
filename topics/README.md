@@ -9,6 +9,7 @@ tags: [index, topics]
 
 - [[topics/hft/00 - Start/README|High-Frequency Trading]]
 - [[topics/econometrics/README|Econometrics]]
+- [[topics/inference-engineering/README|Inference Engineering]]
 
 ## Structure
 
